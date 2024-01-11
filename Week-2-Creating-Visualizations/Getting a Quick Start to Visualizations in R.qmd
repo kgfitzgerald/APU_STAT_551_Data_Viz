@@ -1,0 +1,58 @@
+---
+title: "Jump Starting a Visualization"
+format: html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse) #loads ggplot2 and other packages
+library(palmerpenguins)
+library(esquisse)
+```
+
+In the package `palmerpenguins` there is a data set called `penguins`. We will use that.
+
+```{r load-data}
+data("penguins")
+#View(penguins)
+```
+
+```{r first-viz}
+ggplot(penguins) +
+ aes(x = flipper_length_mm, fill = species) +
+ geom_histogram(bins = 30L) +
+ scale_fill_viridis_d(option = "plasma", 
+                      direction = 1)
+```
+
+## Using `esquisse` to get started  
+
+We will be learning the basic structure of `ggplot2` (grammar of graphics plot 2) throughout the semester, but to help you get started we will use two packages to help us out, the first package being `esquisse`. 
+
+Take note of the variable types in the data.  Now let's make a visualization. Be sure to add a title and axis labels as well:
+
+```{r eval = FALSE}
+esquisse::esquisser(penguins)
+```
+
+Copy the code generated here in the code chunk below and run it:
+
+```{r}
+
+```
+
+
+## Making the graph your own with `ggThemeAssist`
+
+Highlight the code for your visualization above. Then in the Tools Menu under "Addins" go to "ggplot Theme Assistant". A GUI should appear that allows you to specify text sizes, colors, etc. After you finish the code will be added to the end of your graph!
+
+## Save your graph
+
+After your code for your graph (no + is needed), add a line of code like so:  
+
+`ggsave(filename = "mypenguinplot.png")`
+
+and run the full code chunk. In your project folder you should now see a png file of your graph. Check the box next to the png (if on the server) and then select More >> Export. Upload to Canvas for participation!
+
+
+
