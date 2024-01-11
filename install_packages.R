@@ -1,4 +1,6 @@
 install.packages("tidyverse")
+install.packages("esquisse")
+devtools::install_github("hrbrmstr/waffle") #press 1 for ALL when prompted
 install.packages("ggrepel")
 install.packages("openintro")
 install.packages("flexdashboard")
@@ -24,4 +26,5 @@ install.packages("ggridges")
 install.packages("scales")
 install.packages("plotly")
 install.packages("zoo")
-devtools::install_github("hrbrmstr/waffle") #press 1 for ALL when prompted
+install.packages("ggThemeAssist")
+
