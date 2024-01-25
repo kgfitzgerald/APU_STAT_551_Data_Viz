@@ -1,0 +1,454 @@
+---
+title: "ggplot practice"
+author: "YOUR NAME HERE"
+date: "DUE DATE HERE"
+execute: 
+  warning: false
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number_section: false
+    highlight: tango
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Objectives
+
+At the end of this lab you will be able to:
+
+-   Read (import) a dataset into your RStudio Environment
+
+-   Visualize data in the following ways:
+
+    -   Histogram (one numeric variable)
+
+    -   Scatterplot (two numeric variables)
+
+    -   Bar plot (one categorical variable)
+
+    -   Stacked bar plot (two categorical variables)
+
+    -   Faceted histogram (one numeric + one categorical variable)
+
+-   Interpret visualizations to investigate a research question
+
+## Reminders/Recap from last time
+
+Always start by changing two settings:
+
+-   Find the gear/sprocket icon next to the **Render** button (on the same line as the save, spellcheck, and search icons)
+
+-   Click the gear/sprocket icon and then select **Preview in Viewer Pane**.
+
+-   Click the gear/sprocket icon again and select **Chunk Output in Console**
+
+Then, click "Render" so you can turn the Quarto (.qmd) document into a nicely formatted .html document.
+
+RStudio consists of 4 main quadrants:
+
+|         |              |
+|---------|--------------|
+| Source  | Environment  |
+| Console | Files/Viewer |
+
+-   Source - where you can view and edit your Quarto (.qmd) document
+
+-   Console - where the output of your code will appear when you run a code chunk
+
+-   Environment - where you can see what datasets and objects have been imported/created
+
+-   Files/Viewer - where you can access the *Files* for this assignment, and *View* the Rendered .html document
+
+## R Packages
+
+`R` is an open-source programming language, meaning that users can contribute packages that make our lives easier, and we can use them for free. You can think of packages like apps on your phone; they extend the functionality and give you access to many more features beyond what comes in the "base package".
+
+For this lab, and many others in the future, we will use the following pacakges:
+
+-   The **tidyverse** "umbrella" package which houses a suite of many different `R` packages: for data wrangling and data visualization
+-   The **openintro** `R` package: for data and custom functions with the OpenIntro resources that our textbook uses
+-   The **ggridges** `R` package: for creating ridge plots
+-   The **palmerpenguins** `R` package: for access to the `palmerpenguins` data
+
+These packages come pre-installed for you in this Posit Cloud workspace. Each time we want to use a package, we must load it with the `library()` function:
+
+```{r}
+#| label: load-packages
+#| message: false
+library(tidyverse)
+library(openintro)
+library(ggridges)
+library(palmerpenguins)
+```
+
+Make sure to hit the play button for the above code chunk so that the packages get loaded. Otherwise, you will likely get a "could not find ...." error when you try to run other code below.
+
+# Getting Started: Palmer Penguins
+
+The first dataset we will explore is from data collected on penguins by the Palmer Station Antarctica Long Term Ecological Research (LTER) Network. Some research questions we might want to investigate:
+
+-   ***What penguin species are most common near Palmer Station, Antartica?***
+
+-   ***Which of the three Antartica islands in this dataset is most populated with penguins?***
+
+-   ***Is each penguin species equally likely to appear on each island?***
+
+-   ***How much do penguins weigh? Does this differ by species and/or sex?***
+
+-   ***What is the relationship between bill length and flipper length of penguins? Does this relationship differ by species and/or sex?***
+
+Let's get started by loading the dataset called `penguins` from the `palmerpenguins` package.
+
+```{r}
+#| label: load-penguins-data
+penguins <- palmerpenguins::penguins
+```
+
+Note, the general syntax for loading a dataset from a package is `datasetname <- packagename::datasetname`. The backwards arrow `<-` is called the "assignment operator", which assigns information (on the right) back into an object name (on the left).
+
+After running the above code chunk (by clicking the "Play" button), you can check your *Environment* tab (top right quadrant) and see that `penguins` is now listed there and that it has 344 observations and 8 variables.
+
+`R` has stored the Palmer `penguins` data in an object similar to a spreadsheet or a table, which `R` calls a *data frame*. Clicking on the name `penguins` in your Environment will open up a *Data Viewer* tab next to your Quarto file. This display should feel similar to viewing data in Excel or Google Sheets, where you are able to scroll through the dataset to inspect it. However, unlike Excel & Google Sheets, you **will not** be able to edit the data in this tab.
+
+Each row represents a `penguin` that the Palmer Station researchers collected data on. You can run `?penguins` in your console (bottom left quadrant) to pull up a help page that describes each of the 8 variables.
+
+Sometimes, we may not need to inspect the full dataset but simply want to get a `glimpse` of what is inside. The `glimpse()` function helps us do exactly this. Running the code chunk below will allow you to see the ***dimensions*** (# of rows, \# of columns) of this data frame as well as the names of the variables and the first few observations. *Note: if you get a `could not find function "glimpse"` error, your first trouble-shooting tip should be to run all the code chunks above (by hitting the "Fast forward" button next to the play button), and then re-run the current code chunk; the function `glimpse` comes from the `tidyverse` package, which must be loaded in the current R session in order to use its functions.*
+
+```{r}
+glimpse(penguins)
+```
+
+<div>
+
+## Exercise 1
+
+What are the **dimensions** of this dataset?
+
+> YOUR ANSWER HERE
+
+How many **categorical variables** are in this dataset? What are they?
+
+> YOUR ANSWER HERE
+
+What are the names of the three `species` of penguins represented in this data? *Hint: pull up the dataset documentation by running `?penguins` in your console*
+
+> YOUR ANSWER HERE
+
+</div>
+
+At this point, you might notice that many of the commands in `R` look a lot like functions from math class; that is, invoking `R` commands means supplying a function with some number of inputs (what are called arguments) which the function uses to produce an output. The `glimpse()` function, for example, took a single argument - the name of a data frame - and produced a display of the dataset as an output.
+
+# One categorical variable
+
+`R` has some powerful functions for making visualizations.
+
+Let's use a visualization to explore our first research question: ***What penguin species are most common near Palmer Station, Antartica?***
+
+Because `species` is a **categorical variable**, it is appropriate to visualize it using a **bar plot.** We can create a simple bar plot of the species of penguins with the following code:
+
+```{r}
+#| label: create-bar-plot
+
+ggplot(penguins, aes(x = species)) + 
+  geom_bar()
+```
+
+In this code, we use the `ggplot()` function to build a plot. The command above also looks like a mathematical function. This time, however, the function requires multiple inputs (arguments), which are separated by commas.
+
+With `ggplot()`:
+
+-   The first argument is always the name of the dataset you wish to use for plotting.
+-   Next, you provide the variables from the dataset to be assigned to different `aes`thetic elements of the plot, such as the x and the y axes.
+
+These commands will build a blank plot, with the variables you assigned to the x and y axes. Next, you need to tell `ggplot()` what type of visualization you would like to add to the blank template. You add another layer to the `ggplot()` by:
+
+-   adding a `+` at the end of the line, to indicate that you are adding a layer
+-   then specify the `geom`etric object to be used to create the plot.
+
+Since we want a bar plot, we use `geom_bar()`.
+
+<div>
+
+## Exercise 2
+
+Consider a different research question: ***Which of the three Antartica `island`s in this dataset is most populated with penguins?***
+
+What is the variable of interest for this research question, and what type of variable is it?
+
+> YOUR ANSWER HERE
+
+Create an appropriate visualization to investigate the above research question. *Hint, copy, paste, tweak the code for the previous visualization in the code chunk below.*
+
+```{r}
+#| label: create-new-visualization
+
+```
+
+</div>
+
+# Two categorical variables
+
+Consider our next research question: ***Is each penguin species equally likely to appear on each island?*** Note that this is a question about **two categorical variables,** `species` and `island`, therefore, a **stacked bar plot** is appropriate for investigating this question. We can do this using the code below:
+
+```{r}
+#| label: create-stacked-bar-plot
+
+ggplot(penguins, aes(x = island, fill = species)) +
+  geom_bar()
+```
+
+Note that we added the second categorical variable to the `fill` `aes`thetic because we "fill" the bar with the categories of `species`. We can adapt the code further to turn the stacked bar plot into a standardized bar plot.
+
+```{r}
+#| label: create-standardized-bar-plot
+
+ggplot(penguins, aes(x = island, fill = species)) +
+  geom_bar(position = "fill")
+```
+
+<div>
+
+# One numeric variable
+
+***How much do penguins weigh?***
+
+Note that weight is a **numeric variable,** so we can use a **histogram**, **dotplot**, or **boxplot** to visualize it. Histograms are probably the most common, so that's what we'll create. We'll use `geom_histogram()` instead of `geom_bar()`. Feel free to try out `geom_dotplot()` and/or `geom_boxplot()` on your own.
+
+<div>
+
+## Exercise 3
+
+What is the name of the relevant variable in `penguins` that measures the weight of the penguins?
+
+> YOUR ANSWER HERE
+
+Fill in the code below to create a histogram of the weight variable you identified. Use previous code to discern what should go in the two blanks. Once you have filled in the blanks, change `false` to `true` on the second line of code.
+
+```{r}
+#| label: create-histogram
+#| eval: false
+ggplot(______, aes(x = ______)) +
+  geom_histogram()
+```
+
+Extra practice: try adding `color = "white"` inside `geom_histogram()` to make the histogram a little more aesthetically pleasing.
+
+**REMINDER: now is a good time to click "Render" to make sure that the changes you've made in your .qmd make their way into your .html without errors. If you do not see the histogram appear in the html, make sure you have switched `false` to `true` in the above code chunk.**
+
+</div>
+
+# One numeric & one categorical variable
+
+***How much do penguins weigh? Does this differ by species?***
+
+Note that the second part of our research question introduces a categorical variable. So now we are interested in comparing a numeric variable (`body_mass_g`) across groups of a categorical variable (`species`). To visualize one numeric + one categorical variable, we have a couple options:
+
+-   faceted histogram
+
+-   ridge plot
+
+-   side-by-side boxplot (will learn in next lab)
+
+To create a faceted histogram, we simply add a layer called `facet_wrap()` to our visualization pipeline, which specifies which categorical variable we want to `facet` by. We use `ncol = 1` to specify that we want the histograms to all appear in 1 column (by default it will place them all next to each other in 1 row).
+
+```{r}
+#| label: create-faceted-histogram
+
+ggplot(penguins, aes(x = body_mass_g)) +
+  geom_histogram(color = "white") + 
+  facet_wrap(~ species, ncol = 1)
+```
+
+To create a ridge plot, we use the following code:
+
+```{r}
+#| label: create-ridge-plot
+
+ggplot(penguins, aes(x = body_mass_g, y = species)) +
+  geom_density_ridges()
+```
+
+<div>
+
+# Two numeric variables
+
+***What is the relationship between bill length and flipper length of penguins?***
+
+To investigate this question, we need a **scatterplot** because we are dealing with **two numeric variables**.
+
+<div>
+
+## Exercise 4
+
+What are the names of the two relevant variables in `penguins` that measure the bill length and flipper length?
+
+> YOUR ANSWER HERE
+
+Fill in the code below to create a scatterplot of the two variables you identified. Once you have filled in the blanks, change `false` to `true` on the first line of code.
+
+```{r}
+#| label: create-scatterplot
+#| eval: false
+ggplot(_______, aes(x = __________, y = _________)) +
+  geom_point()
+```
+
+Use the visualization to answer the research question. That is, describe the relationship between bill length and flipper length.
+
+> YOUR ANSWER HERE
+
+</div>
+
+# More than 2 variables
+
+We can utilize extra `aes`thetics (in addition to x- and y-axis) such as `color`, `shape`, or `size` to investigate relationships of more than two variables.
+
+```{r}
+#| label: use-color-aesthetics
+ggplot(penguins, aes(x = bill_length_mm, y = flipper_length_mm,
+                     color = species)) +
+  geom_point()
+
+ggplot(penguins, aes(x = bill_length_mm, y = flipper_length_mm,
+                     color = sex)) +
+  facet_wrap(~species) +
+  geom_point()
+```
+
+<div>
+
+
+
+# Practice on new data
+
+You've now been exposed to code for creating visualizations for many different data types. Now, it's your turn to practice choosing an appropriate visualization for new data and research questions.
+
+## Social Experiment data
+
+The dataset `socialexp` from the `openintro` package contains data from a "social experiment" conducted at a restaurant to investigate what people do when they see a very obviously bruised woman getting picked on by her boyfriend. On two different occasions at the same restaurant, the same couple was depicted. In one scenario the woman was dressed "provocatively" and in the other scenario the woman was dressed "conservatively". The code below loads this data:
+
+```{r}
+#| label: load-socialexp-data
+
+socialexp <- openintro::socialexp
+```
+
+After running the above code chunk, you can view the full data by double clicking it in your `Environment` tab, or get a quick glimpse by running the code `glimpse(socialexp)` in your console.
+
+<div>
+
+## Exercise 5
+
+***Do most people intervene or not intervene when they see a bruised woman being picked on by her boyfriend?***
+
+Use an appropriate visualization to investigate this question.
+
+```{r}
+#| label: ex-8.1-code
+
+#your code here - remove the hashtag!
+```
+
+Comment on what you found.
+
+> YOUR ANSWER HERE
+
+***Do people respond differently based on how the woman is dressed?***
+
+Use an appropriate visualization to investigate this question.
+
+```{r}
+#| label: ex-8.2-code
+
+#your code here - remove the hashtag!
+```
+
+Comment on what you found.
+
+> YOUR ANSWER HERE
+
+</div>
+
+## Marvel Cinematic Universe Data
+
+The dataset `mcu_films` from the `openintro` package contains data from movies in the Marvel Cinematic Universe (through 2019). The code below loads this data:
+
+```{r}
+#| label: load-mcu_films-data
+
+mcu_films <- openintro::mcu_films
+```
+
+You can view the full data by double clicking it in your `Environment` tab, or get a quick glimpse by running the code `glimpse(mcu_films)` in your console. You can read more about the dataset by running `?mcu_films` in your console.
+
+<div>
+
+## Exercise 6
+
+How many MCU movies are in this dataset?
+
+> YOUR ANSWER HERE
+
+***What is the relationship between gross box office totals worldwide (`gross_world`) vs. gross box office totals in the US (`gross_us`)? In particular, do movies that do well in the US tend to also do well worldwide?***
+
+Create an appropriate visualization to investigate this question.
+
+```{r}
+#| label: ex-9-code
+
+#your code here - remove the hashtag!
+```
+
+Comment on what the visualization reveals.
+
+> YOUR ANSWER HERE
+
+What's one thing the visualization makes you wonder about the data?
+
+> YOUR ANSWER HERE
+
+</div>
+
+# BONUS practice (extra credit)
+
+<div>
+
+## BONUS 1
+
+State an additional research question that can be investigated using the `penguins` or `mcu_films` data, and create a visualization to investigate it. Comment on your findings.
+
+> YOUR RESEARCH QUESTION HERE
+
+```{r}
+#| label: bonus-1-code
+
+#your visualization code here - remove hashtag!
+```
+
+> YOUR COMMENTS HERE
+
+</div>
+
+<div>
+
+## BONUS 2
+
+We've just scratched the surface of what `ggplot` and R code can do! For a peek at some more advanced code and visualizations, try to recreate one or more of the visualizations from this [blogpost](https://rstudio-pubs-static.s3.amazonaws.com/644291_862b5d1c55a044149d9a2cd2109d300c.html) using the code provided. 
+
+```{r}
+#| label: bonus-2-code
+
+#blogpost code here - remove the hashtag!
+```
+
+# Submission
+
+Once all Exercises have been completed, render the document one last time. Look over the .html document (in the Viewer pane) to make sure all your answers are visible and formatted as you intended.
+
+To submit this assignment, you need to upload the .html file to the relevant Week 3 assignment on Canvas.
+
+
