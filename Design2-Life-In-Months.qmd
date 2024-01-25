@@ -1,0 +1,121 @@
+---
+title: "Life in Months"
+author: "Your Name"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number_section: false
+    highlight: "tango"
+    theme: "cosmo"
+    df-print: paged
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(dplyr) 
+library(lubridate)
+library(forcats)
+library(tidyr)
+library(ggplot2)
+library(waffle)
+```
+
+
+## Preparating Your Data
+First, we are going to set up your data.  For `birth_year` put the year you were born and for `birth_month` put the number that corresponds with the month you were born.  `last_year` and `last_month` are set to your birth month minus 1 and your birth year plus 80.
+
+```{r}
+birth_year <- 1993
+birth_month <- 1 #May
+last_year <- birth_year + 80
+last_month <- birth_month - 1
+```
+
+Next, we are going to create the framework for your life in months.  All you have to do for the next chunk is run the code - it will generate a data frame that contains all the years and months from your birth until the month and year 80 years after your birth.  
+```{r}
+life_data <- expand_grid(
+  month = month.name,
+  year = birth_year:last_year) %>%
+  mutate(month = fct_relevel(month, month.name)) %>%
+  arrange(year, month) %>%
+  group_by(year) %>%
+  mutate(month_number = row_number()) %>%
+  ungroup() %>%
+  filter(!(year == birth_year & month_number < birth_month)) %>% 
+  filter(!(year == last_year & month_number > last_month))
+```
+
+
+## Defining your Eras
+
+You will adapt the code below to define your eras and colors for each era.  Put the "year,month", "era name", "color" - you can use the name of the color or the hex code for the color (use the color picker here to find the hex codes: https://colorpicker.me/).
+
+You do not have to use the eras defined here - you can add, change, or remove lines as needed.
+
+```{r}
+eras <- tribble(
+~year_month, ~era, ~fill_color,
+"1993,1", "Childhood in Tennessee", "#0B4221",  #modify to you
+"1998,5", "K - 2nd grade in Oklahoma", "#285B5D",
+"2001,6", "3rd - 12th grade in Texas", "#518393",
+"2011,8", "BS @ Olivet Nazarene University", "#7DACBC",
+"2015,5", "First real jobs @ World Vision & Barna", "#96B0BB",
+#you can add more lines and events as you desire
+"2016,9", "PhD @ Northwestern University","#C9B7A5" ,
+"2021,8", "Became Statistics Professor at APU", "#E9C6A5",
+"2024,2", "Unlived Life", "#E4DECE"  #only change color
+)
+```
+
+Now run the following code - this will add your eras to your life in months.
+```{r}
+era_names <- paste0(eras$era)
+life_data_era <- life_data %>%
+  rowwise() %>%
+  mutate(year_month = paste0(c(year, month_number), 
+                             collapse = ",")) %>%
+  ungroup() %>%
+  left_join(eras, by = "year_month") %>%
+  fill(era, fill_color) %>%
+  mutate(fill_color = fct_inorder(fill_color),
+         era = fct_inorder(era)) 
+```
+
+You can look at the data using the following code:
+```{r eval=FALSE}
+View(life_data_era)
+```
+
+
+Now, let's create the waffle chart! Run the code to create the graph, but change the title name to match your name:
+```{r}
+waffle_life<-life_data_era %>%
+  count(era) %>% ## the count of each era is the number of months in that era
+  ggplot(aes(fill = era, values = n)) +
+  waffle::geom_waffle(color = "#F7F7F7", n_rows = 12, size = 1, flip = FALSE, na.rm=FALSE) + ## make each row a year/12 months
+  scale_fill_manual(name = "", values = eras$fill_color) +
+  coord_equal() +
+  theme_enhance_waffle() +
+  theme(legend.text = element_text(size = 8),
+        legend.position="bottom",
+        axis.ticks = element_blank(),
+        plot.background = element_rect(fill = "#F7F7F7", 
+                                       color = "#F7F7F7")) +
+  ggtitle("Dr. Fitz's Life in Months") + #Change the Title Name
+  theme(plot.title = element_text(face = "bold", size = 40))
+waffle_life
+```
+If you get an error that "geom_waffle" is not found, you may need to restart you R Session (under Session).
+
+
+Now we can save the image - Change out your professor's name with your name. You can adjust the ratio for height/width as needed.
+```{r}
+ggsave("DrFitz_Life_in_Months.png", plot = waffle_life, 
+       device = "png", width = 25, height = 15, dpi = 300)
+```
+
