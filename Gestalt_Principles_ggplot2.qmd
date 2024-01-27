@@ -1,0 +1,252 @@
+---
+title: "Week 4: Gestalt Principles"
+subtitle: "ggplot practice"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Setup
+
+The following code loads the `tidyverse` and sets the default `ggplot` theme to be `theme_light()`
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment="")
+library(tidyverse)
+theme_set(theme_light())
+```
+
+Next, let's read in the data. Make sure the csv file is located within a folder called `data` in your R project.  
+
+```{r, warning = FALSE, message = FALSE}
+fake_data <- read_csv("./data/fake_data.csv")
+```
+
+Now is a good time to Render to make sure you can turn you .qmd Quarto file into a .html file. Check your Settings to make sure "Preview in Viewer Pane" is selected. 
+
+## Activity Instructions
+
+1. For each of the provided graphs, write a couple sentences describing how the Gestalt Principles are being used, what comparisons the visualization makes relatively easy or more difficult to see, and what "stories" it is able to tell effectively. 
+2. Choose at least one of provided graphs to "clean up" (e.g. add titles, fix labels / legends, etc). 
+3. Complete the exercises in the "More `ggplot` practice" section at the end
+4. Once completed, submit your Rendered html file on Canvas
+
+
+## Gestalt Principles
+
+### Proximity  
+
+```{r}
+fake_data %>% 
+  ggplot(aes(x = Factor1, y = Response)) +
+  geom_col(aes(fill = Factor2), 
+           position = position_dodge(),
+           color = "black") 
+```
+
+How is proximity used? What comparisons are easy here? What "stories" are easy to tell?
+
+> YOUR ANSWER HERE
+
+### Encolsure + Proximity 
+
+```{r}
+fake_data %>% 
+  ggplot(aes(x = Factor1, y = Response)) +
+  geom_col(aes(fill = Factor2),
+           color = "black") +
+  facet_wrap(~Factor2) 
+```
+
+How are encolusre and proximity used? What comparisons are easy here? What "stories" are easy to tell?
+
+> YOUR ANSWER HERE
+
+### Similarity  
+
+```{r}
+fake_data %>% 
+  ggplot(aes(x = Factor1, y = Response)) +
+  geom_point(aes(shape = Factor2,
+                 color = Factor2), 
+             size = 6)
+```
+
+How is similarity used? What comparisons are easy here? What "stories" are easy to tell?
+
+> YOUR ANSWER HERE
+
+### Similarity + Connection
+
+```{r}
+fake_data %>% 
+  ggplot(aes(x = Factor1, y = Response)) +
+  geom_point(aes(shape = Factor2,
+                 color = Factor2), 
+             size = 6) +
+  geom_line(aes(group = Factor2,
+                color = Factor2), 
+            size = 2) 
+```
+
+How are similarity and connection used? What comparisons are easy here? What "stories" are easy to tell?
+
+> YOUR ANSWER HERE
+
+### Similarity + Connection
+
+```{r}
+fake_data %>% 
+  mutate(is_A = (Factor2 == "A")) %>% 
+  ggplot(aes(x = Factor1, 
+             y = Response, 
+             color = is_A)) +
+  geom_point(aes(shape = Factor2), 
+             size = 6) +
+  geom_line(aes(group = Factor2), 
+            size = 2) +
+  guides(color = "none")
+```
+
+How are similarity and connection used? What comparisons are easy here? What "stories" are easy to tell?
+
+> YOUR ANSWER HERE
+
+### Enclosure + Similarity + Connection
+
+```{r}
+fake_data %>% 
+  mutate(is_A = (Factor2 == "A")) %>% 
+  ggplot(aes(x = Factor1, 
+             y = Response, 
+             color = is_A)) +
+  geom_point(aes(shape = Factor2), 
+             size = 6) +
+  geom_line(aes(group = Factor2), 
+            size = 2) +
+  guides(color = "none") +
+  geom_rect(xmin = 0.75, xmax = 1.25, ymin = 2, ymax = 17, 
+            fill = "beige", alpha = 0.1, color = "black") +
+  geom_rect(xmin = 1.75, xmax = 3.25, ymin = 2, ymax = 17, 
+            fill = "beige", alpha = 0.1, color = "black")
+
+```
+
+How are similarity, connection, and enclosure used? What comparisons are easy here? What "stories" are easy to tell?
+
+> YOUR ANSWER HERE
+
+## More ggplot practice
+
+You can use this code template to make thousands of graphs with **ggplot2**.
+
+```{r eval = FALSE}
+ggplot(data = <DATA>) +
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+```
+
+For the exercises below, you will visualize the `mpg` data. 
+
+```{r}
+glimpse(mpg)
+#View(mpg)
+```
+
+
+### Your Turn 1
+
+Create a `ggplot()` visualization that uses the following components:
+
++ Data: `mpg`
++ x-axis: city-street mpg
++ y-axis: highway mpg
++ geometry: points
++ modifier: none
+
+```{r}
+
+```
+
+
+## Your Turn 2
+
+Replace this scatterplot with one that draws boxplots. Use the cheatsheet on Canvas. Try your best guess.
+
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = class, y = hwy))
+```
+
+
+## Your Turn 3
+
+Make a histogram of the `hwy` variable from `mpg`. Hint: do not supply a y variable.
+
+```{r}
+
+```
+
+## Your Turn 4
+
+Use the help page for `geom_histogram` to make the bins 2 units wide. Change the outline of the bars to be white. 
+
+```{r}
+
+```
+
+
+## Your Turn 5
+
+Add `color`, `size`, `alpha`, and `shape` aesthetics to your graph. Experiment.  
+
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+## Help Me
+
+What do `facet_grid()` and `facet_wrap()` do? 
+(run the code, interpret, convince your group)
+
+```{r}
+# Makes a plot that the commands below will modify
+q <- ggplot(mpg) + geom_point(aes(x = displ, y = hwy))
+
+q + facet_grid(. ~ cyl)
+q + facet_grid(drv ~ .)
+q + facet_grid(drv ~ cyl)
+q + facet_wrap(~ class)
+```
+
+> YOUR ANSWER HERE
+
+## Your Turn 6
+
+Make a bar chart `class` colored by `class`. Use the help page for `geom_bar` to choose a "color" aesthetic for class.
+
+```{r}
+
+```
+
+## Quiz Yourself
+
+What will this code do?
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(displ, hwy)) +
+  geom_smooth(aes(displ, hwy))
+```
+
+
+***
+
+
