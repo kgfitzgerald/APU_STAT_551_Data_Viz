@@ -1,0 +1,76 @@
+---
+title: "HIV Rates Recreation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse)
+library(openintro) #install
+library(ggrepel) #install
+```
+
+## Data Cleaning  
+```{r}
+hiv <- read_csv("HIV2015.csv")
+```
+
+
+Here is some data cleaning to make coloring the bars a bit easier
+```{r}
+hiv %>% 
+  mutate(state_abr = ifelse(State == "US", "US", state2abbr(State))) %>% 
+  mutate(state_fin = ifelse(state_abr == "WI", "WI", 
+                            ifelse(state_abr == "US", "US", Midwest))) -> hiv_update
+  
+```
+
+
+```{r}
+ggplot(hiv_update) +
+  geom_col(aes(x = fct_reorder(state_abr, -Rate2015), 
+               y = Rate2015, fill = state_fin)) +
+  labs(title = "HIV diagnosis rates across the U.S",
+       subtitle = "Estimated HIV diagnosis rate by state, 2015",
+       x = "State of Residence at Diagnosis",
+       y = "Rate per 100,000 Population") +
+  guides(fill = FALSE) +
+  scale_fill_manual(values = c("#28458a","#7ac4ab","#c775c6","#fcf995")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  scale_y_continuous(expand = c(0,0))
+```
+
+
+Notice that our order of Wisconsin and WV are not the same as the original graph - if we look at it we see they have the same value.  Why?
+```{r}
+hiv_update %>% 
+  filter(state_abr %in% c("WI","WV"))
+```
+
+
+```{r}
+hiv_update %>% 
+  mutate(state_abr == fct_relevel(state_abr, "WI")) %>% 
+  ggplot(aes(x = fct_relevel(fct_reorder(state_abr, -Rate2015), "WI", after = 41 ), 
+             y = Rate2015, fill = state_fin)) +
+  geom_col() +
+  labs(title = "HIV diagnosis rates across the U.S",
+       subtitle = "Estimated HIV diagnosis rate by state, 2015",
+       x = "State of Residence at Diagnosis",
+       y = "Rate per 100,000 Population") +
+  guides(fill = "none") +
+  scale_fill_manual(values = c("#28458a","#7ac4ab","#c775c6","#fcf995")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,60)) +
+  geom_text_repel(data = hiv_update %>% filter(state_fin %in% c("Y","US","WI") | state_abr == "DC"), 
+                  aes(label = Rate2015),
+                  point.padding = NA, nudge_y = 2.5)
+
+```
+

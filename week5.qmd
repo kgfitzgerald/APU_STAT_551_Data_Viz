@@ -1,0 +1,285 @@
+---
+title: "Modifying Visualizations of Amounts"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse) #includes ggplot2 + forcats which we will rely on heavily for visualizing amounts
+library(patchwork) #for patching together multiple plots
+library(cowplot) #for arranging multiple plots
+```
+
+## The General Social Survey  
+"Since 1972, the General Social Survey (GSS) has provided politicians, policymakers, and scholars with a clear and unbiased perspective on what Americans think and feel about such issues as national spending priorities, crime and punishment, intergroup relations, and confidence in institutions." (http://gss.norc.org/)
+
+We are going to look at a subset of the data, from 2000-2014
+
+```{r}
+#| warning: false
+#| message: false
+gss <- read_csv("./data/gss_subset.csv")
+```
+
+
+## Bar Plot Basics
+Let's start with a basic bar plot for Religion
+
+First, let's look at the count/frequency statistics for the religion variable.  
+
+```{r}
+gss %>% 
+  count(relig)
+
+gss %>% 
+  count(relig) %>% 
+  mutate(prop = n/sum(n))
+```
+
+Here is the default graphic for a barplot of the counts.  Notice, if we use `geom_bar()` it will automatically summarize for us.
+
+```{r}
+gss %>% 
+  ggplot(aes(x = relig)) +
+  geom_bar()
+```
+
+
+Notice that going with just the default is not going to give us a great graph. 
+
+We could switch axis assignments which can help with label readability:
+
+```{r}
+gss %>% 
+  ggplot(aes(y = relig)) +
+  geom_bar()
+```
+
+but we need to consider some modifications. 
+
+## Using forcats
+
+The `forcats` package allows us to work directly with categorical variables in ways that make applying Gestalt Principle easier.
+
+Learn more here: https://forcats.tidyverse.org/ 
+
+### Reordering Variable  
+
+We can use `fct_infreq` to apply the principle of simplicity for comparison.  
+
+```{r}
+gss %>% 
+  ggplot(aes(y = fct_infreq(relig))) +
+  geom_bar()
+```
+
+
+We can use `fct_rev` to do the reverse order.
+```{r}
+gss %>% 
+  ggplot(aes(y = fct_rev(fct_infreq(relig)))) +
+  geom_bar()
+```
+
+
+
+### Collapsing Levels  
+We can use `fct_collapse` to redefine our factor levels.  Remember - doing this is a form of analysis because you are making some assumptions about what groups go together!  
+
+```{r}
+
+gss %>% 
+  mutate(religion = fct_collapse(relig,
+                                 Christian = c("Catholic",
+                                               "Christian",
+                                               "Orthodox-christian",
+                                               "Protestant"),
+                                 Eastern = c("Buddhism", 
+                                             "Hinduism",
+                                             "Other eastern"), 
+                                 Jewish = c("Jewish"),
+                                 Muslim = c("Moslem/islam"),
+                                 None = c("None"),
+                                 Unknown = c("No answer", 
+                                             "Don't know"),
+                                 Other = c("Other", 
+                                           "Native american",
+                                           "Inter-nondenominational"))) %>% 
+  ggplot(aes(y =  fct_infreq(religion))) +
+  geom_bar() 
+```
+
+
+
+### Creating Groups 
+
+Use `facet_wrap` to create groups of visualizations based on a specific variable.
+
+```{r}
+
+gss %>% 
+  mutate(religion = fct_collapse(relig,
+                                 Christian = c("Catholic",
+                                               "Christian",
+                                               "Orthodox-christian",
+                                               "Protestant"),
+                                 Eastern = c("Buddhism", 
+                                             "Hinduism",
+                                             "Other eastern"), 
+                                 Jewish = c("Jewish"),
+                                 Muslim = c("Moslem/islam"),
+                                 None = c("None"),
+                                 Unknown = c("No answer", 
+                                             "Don't know"),
+                                 Other = c("Other", 
+                                           "Native american",
+                                           "Inter-nondenominational"))) %>% 
+  ggplot(aes(y = fct_infreq(religion))) +
+  geom_bar() +
+  facet_wrap(~marital, nrow = 2)
+```
+
+
+Do we need to do a bit of data cleaning? Should we consider something other than count to display here? Should we switch the variable?
+
+```{r}
+gss %>% 
+  mutate(religion = fct_collapse(relig,
+                                 Christian = c("Catholic",
+                                               "Christian",
+                                               "Orthodox-christian",
+                                               "Protestant"),
+                                 Eastern = c("Buddhism", 
+                                             "Hinduism",
+                                             "Other eastern"), 
+                                 Jewish = c("Jewish"),
+                                 Muslim = c("Moslem/islam"),
+                                 None = c("None"),
+                                 Unknown = c("No answer", 
+                                             "Don't know"),
+                                 Other = c("Other", 
+                                           "Native american",
+                                           "Inter-nondenominational"))) %>% 
+  count(religion, marital) %>% 
+  group_by(religion) %>%
+  mutate(proportion = n/sum(n)) %>% 
+  filter(marital != "No answer") %>% 
+  ggplot(aes(y = fct_reorder(marital, proportion),
+             x = proportion, fill = marital)) +
+  geom_col() +
+  facet_wrap(~religion, nrow = 3) +
+  guides(fill = "none")
+
+
+```
+
+
+
+### Group 1 visualization
+
+```{r}
+
+```
+
+
+
+### Group 2 Visualization
+
+```{r}
+
+```
+
+
+## More R Practice
+
+For the following 3 tasks, you will try to recreate the graphics on the [slide](https://docs.google.com/presentation/d/1bUAM-vDeBgu0ufvjmkdsxyQC5zzNWSdI/edit?usp=sharing&ouid=106967575594472014629&rtpof=true&sd=true) as precisely as possible.
+
+### Visualization Task 1
+
+Using the `titanic.rds` dataset, recreate the Visualization Task 1 graphic on the slide as precisely as possible.
+
+```{r}
+titanic <- read_rds("./data/titanic.rds")
+```
+
+
+*Hints:*
+
+- Create a new variable that uses `died` and `survived` as levels/categories
+- Hex colors: `#D55E00D0`, `#0072B2D0` (no alpha is being used)
+
+```{r}
+
+```
+
+
+### Visualization Task 2
+
+Use the `athletes_dat` dataset --- extracted from `Aus_althetes.rds` --- to recreate the graphic on the slide as precisely as possible. **Create the graphic twice**: once using `patchwork` and once using `cowplot`. Below is some wrangling code to get started.
+
+```{r}
+#load data
+Aus_athletes <- read_rds("./data/Aus_athletes.rds")
+# Get list of sports played by BOTH sexes
+both_sports <- Aus_athletes %>%
+  # dataset of columns sex and sport 
+  # only unique observations
+  dplyr::distinct(sex, sport) %>%
+  # see if sport is played by one gender or both
+  count(sport) %>%
+  # only want sports played by BOTH sexes
+  filter(n == 2) %>%
+  # get list of sports
+  pull(sport)
+
+# Process data
+athletes_dat <- Aus_athletes %>%
+  # only keep sports played by BOTH sexes
+  filter(sport %in% both_sports) %>%
+  # rename track (400m) and track (sprint) to be track
+  # case_when will be very useful with shiny apps
+  mutate(
+    sport = case_when(
+      sport == "track (400m)" ~ "track",
+      sport == "track (sprint)" ~ "track",
+      TRUE ~ sport
+      )
+    )
+```
+
+*Hints:*
+
+- Build each plot separately
+- Bar plot: lower limit 0, upper limit 95
+- Bar plot: shift bar labels by 5 units and top justify 
+- Bar plot: label size is 5
+- Bar plot: `#D55E00D0` & `#0072B2D0` --- no `alpha`
+- Scatterplot: `#D55E00D0` & `#0072B2D0` --- no `alpha`
+- Scatterplot: filled circle (use shape = 21), with "white" outline; size is 3
+- Scatterplot: `rcc` is red blood cell count; `wcc` is white blood cell count
+- Boxplot: outline `#D55E00` and `#0072B2`; shading `#D55E0040` and `#0072B240`
+- Boxplot: should be made narrower; 0.5
+- Boxplot: Legend is inset in top-right corner of bottom plot
+- Boxplot: Space out labels `c("female    ", "male")`
+- Boxplot: Use `guides(color = guide_legend(override.aes = list(color = NA, fill = c("#D55E00D0", "#0072B2D0"))))` to make legend solid rectangles instead of boxplots
+
+```{r}
+
+```
+
+### Visualization Task 3
+
+Create the following graphic using `patchwork`.
+
+*Hints:*
+
+- Use plots created in exercise 4
+- inset theme is classic
+  - Useful values: 0, 0.45, 0.75, 1
+- plot annotation `"A"`
