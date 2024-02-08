@@ -275,7 +275,7 @@ athletes_dat <- Aus_athletes %>%
 
 ### Visualization Task 3
 
-Create the following graphic using `patchwork`.
+Create the graphic on the slide using `patchwork`.
 
 *Hints:*
 
@@ -283,3 +283,13 @@ Create the following graphic using `patchwork`.
 - inset theme is classic
   - Useful values: 0, 0.45, 0.75, 1
 - plot annotation `"A"`
+
+```{r}
+
+```
+
+## Submission
+
+Hit Render one last time to make sure your work ends up in your html. Scroll through to make sure everything appears as desired. 
+
+Then, submit to "Week 5 - Amounts & Multi-figure panels" on Canvas.
