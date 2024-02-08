@@ -23,25 +23,24 @@ library(tidyverse)
 theme_set(theme_light())
 ```
 
-Next, let's read in the data. Make sure the csv file is located within a folder called `data` in your R project.  
+Next, let's read in the data. Make sure the csv file is located within a folder called `data` in your R project.
 
 ```{r, warning = FALSE, message = FALSE}
 fake_data <- read_csv("./data/fake_data.csv")
 ```
 
-Now is a good time to Render to make sure you can turn you .qmd Quarto file into a .html file. Check your Settings to make sure "Preview in Viewer Pane" is selected. 
+Now is a good time to Render to make sure you can turn you .qmd Quarto file into a .html file. Check your Settings to make sure "Preview in Viewer Pane" is selected.
 
 ## Activity Instructions
 
-1. For each of the provided graphs, write a couple sentences describing how the Gestalt Principles are being used, what comparisons the visualization makes relatively easy or more difficult to see, and what "stories" it is able to tell effectively. 
-2. Choose at least one of provided graphs to "clean up" (e.g. add titles, fix labels / legends, etc). 
-3. Complete the exercises in the "More `ggplot` practice" section at the end
-4. Once completed, submit your Rendered html file on Canvas
-
+1.  For each of the provided graphs, write a couple sentences describing how the Gestalt Principles are being used, what comparisons the visualization makes relatively easy or more difficult to see, and what "stories" it is able to tell effectively.
+2.  Choose at least one of provided graphs to "clean up" (e.g. add titles, fix labels / legends, etc).
+3.  Complete the exercises in the "More `ggplot` practice" section at the end
+4.  Once completed, submit your Rendered html file on Canvas
 
 ## Gestalt Principles
 
-### Proximity  
+### Proximity
 
 ```{r}
 fake_data %>% 
@@ -55,7 +54,7 @@ How is proximity used? What comparisons are easy here? What "stories" are easy t
 
 > YOUR ANSWER HERE
 
-### Encolsure + Proximity 
+### Encolsure + Proximity
 
 ```{r}
 fake_data %>% 
@@ -69,7 +68,7 @@ How are encolusre and proximity used? What comparisons are easy here? What "stor
 
 > YOUR ANSWER HERE
 
-### Similarity  
+### Similarity
 
 ```{r}
 fake_data %>% 
@@ -152,28 +151,26 @@ ggplot(data = <DATA>) +
   <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
 ```
 
-For the exercises below, you will visualize the `mpg` data. 
+For the exercises below, you will visualize the `mpg` data.
 
 ```{r}
 glimpse(mpg)
 #View(mpg)
 ```
 
-
 ### Your Turn 1
 
 Create a `ggplot()` visualization that uses the following components:
 
-+ Data: `mpg`
-+ x-axis: city-street mpg
-+ y-axis: highway mpg
-+ geometry: points
-+ modifier: none
+-   Data: `mpg`
+-   x-axis: city-street mpg
+-   y-axis: highway mpg
+-   geometry: points
+-   modifier: none
 
 ```{r}
 
 ```
-
 
 ## Your Turn 2
 
@@ -183,7 +180,6 @@ Replace this scatterplot with one that draws boxplots. Use the cheatsheet on Can
 ggplot(data = mpg) +
   geom_point(mapping = aes(x = class, y = hwy))
 ```
-
 
 ## Your Turn 3
 
@@ -195,16 +191,15 @@ Make a histogram of the `hwy` variable from `mpg`. Hint: do not supply a y varia
 
 ## Your Turn 4
 
-Use the help page for `geom_histogram` to make the bins 2 units wide. Change the outline of the bars to be white. 
+Use the help page for `geom_histogram` to make the bins 2 units wide. Change the outline of the bars to be white.
 
 ```{r}
 
 ```
 
-
 ## Your Turn 5
 
-Add `color`, `size`, `alpha`, and `shape` aesthetics to your graph. Experiment.  
+Add `color`, `size`, `alpha`, and `shape` aesthetics to your graph. Experiment.
 
 ```{r}
 ggplot(data = mpg) +
@@ -213,8 +208,7 @@ ggplot(data = mpg) +
 
 ## Help Me
 
-What do `facet_grid()` and `facet_wrap()` do? 
-(run the code, interpret, convince your group)
+What do `facet_grid()` and `facet_wrap()` do? (run the code, interpret, convince your group)
 
 ```{r}
 # Makes a plot that the commands below will modify
@@ -246,7 +240,4 @@ ggplot(mpg) +
   geom_smooth(aes(displ, hwy))
 ```
 
-
-***
-
-
+------------------------------------------------------------------------
