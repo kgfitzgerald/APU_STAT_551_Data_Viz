@@ -31,11 +31,7 @@ admissions %>%
   count(sex, decision)
 ```
 
-
-
-
 ```{r}
 admissions %>% 
   count(program, sex, decision)
 ```
-
