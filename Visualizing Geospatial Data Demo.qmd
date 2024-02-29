@@ -1,0 +1,321 @@
+---
+title: "Visualizing Geospatial Data"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse)
+library(sf) #GIS magic!
+```
+
+## Projections in R
+
+The `sf` package utilizes a function called `coord_sf()` to specify the desired Coordinate Reference System (CRS) used for projection. The `coord_sf()` function contains an argument called `crs`. 
+
++ `crs = "+proj=robin"` will produce the Robinson projection
++ `crs = 4269` will produce NAD83 projection, which stands for North American Datum 1983. 4269 is its EPSG code, which stands for European Petroleum Survey Group
++ `crs = "ESRI:102003"` will produce the Albers projection projection. 102003 is its ESRI code, which stands for Environmental Systems Research Institute
+
+## Shapefiles
+
+Shapefiles are special types of data that include information about geography, such as points (latitude, longitude), paths (a bunch of connected latitudes and longitudes) and areas (a bunch of connected latitudes and longitudes that form a complete shape). Nowadays, most government agencies provide shapefiles for their jurisdictions. For global mapping data, you can use the Natural Earth project:
+
+- [Natural Earth](https://www.naturalearthdata.com/)  
+- [US Census Bureau](https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html)
+
+This activity requires a folder called "shapefiles" which includes shapefiles from these sources:
+
+- World map: 110m “Admin 0 - Countries” from Natural Earth  
+- US states: 20m 2018 state boundaries from the US Census Bureau  
+- US counties: 5m 2018 county boundaries from the US Census Bureau  
+- US states high resolution: 10m “Admin 1 – States, Provinces” from Natural Earth  
+- Global rivers: 10m “Rivers + lake centerlines” from Natural Earth  
+- North American rivers: 10m “Rivers + lake centerlines, North America supplement” from Natural Earth  
+- Global lakes: 10m “Lakes + Reservoirs” from Natural Earth  
+
+
+We will read those in below:
+
+```{r}
+# Download "Admin 0 – Countries" from
+# https://www.naturalearthdata.com/downloads/110m-cultural-vectors/
+world_map <- read_sf("shapefiles/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp")
+
+# Download cb_2018_us_state_20m.zip under "States" from
+# https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
+us_states <- read_sf("shapefiles/cb_2018_us_state_20m/cb_2018_us_state_20m.shp")
+
+# Download cb_2018_us_county_5m.zip under "County" from
+# https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
+us_counties <- read_sf("shapefiles/cb_2018_us_county_5m/cb_2018_us_county_5m.shp")
+
+# Download "Admin 1 – States, Provinces" from
+# https://www.naturalearthdata.com/downloads/10m-cultural-vectors/
+us_states_hires <- read_sf("shapefiles/ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp")
+
+# Download "Rivers + lake centerlines" from
+# https://www.naturalearthdata.com/downloads/10m-physical-vectors/
+rivers_global <- read_sf("shapefiles/ne_10m_rivers_lake_centerlines/ne_10m_rivers_lake_centerlines.shp")
+
+# Download "Rivers + lake centerlines, North America supplement" from
+# https://www.naturalearthdata.com/downloads/10m-physical-vectors/
+rivers_na <- read_sf("shapefiles/ne_10m_rivers_north_america/ne_10m_rivers_north_america.shp")
+
+# Download "Lakes + Reservoirs" from
+# https://www.naturalearthdata.com/downloads/10m-physical-vectors/
+lakes <- read_sf("shapefiles/ne_10m_lakes/ne_10m_lakes.shp")
+```
+
+
+## Basic Plotting of the World  
+
+Let's look at the `world_map` data:
+```{r eval = FALSE}
+View(world_map)
+```
+
+The last column is the magical `geometry` column with the latitude/longitude details for the borders for every country. RStudio only shows you 50 columns at a time in the RStudio viewer, so you’ll need to move to the next page of columns with the » button in the top right corner.
+
+Because this is just a data frame, we can do all our normal `dplyr` things to it. Let’s get rid of Antarctica, since it takes up a big proportion of the southern hemisphere:
+
+```{r}
+world_no_ant <- world_map %>% 
+  filter(ISO_A3 != "ATA")
+```
+
+
+Now we can create our plot - `geom_sf` automatically looks for the geometry column so we do not need to specify it unless it is called something else, but if never hurts.
+
+```{r}
+ggplot() + 
+  geom_sf(data = world_no_ant,
+          aes(geometry = geometry)) +
+  theme_void()
+```
+
+
+
+```{r}
+ggplot() + 
+  geom_sf(data = world_no_ant,
+          fill = _________, color = _______, linewidth = _______) + #pick a color for the countries, the color of their borders, and the width of the borders
+  theme_void()
+```
+
+
+
+The Natural Earth dataset happens to come with some columns with a coloring scheme with 7–13 colors (MAPCOLOR7, MAPCOLOR9, etc.) so that no countries with a shared border share a color. We can fill by that column:
+
+```{r}
+ggplot() + 
+  geom_sf(data = world_no_ant, 
+          aes(fill = as.factor(MAPCOLOR7)),  #notice this is an aesthetic!
+          color = "#401D16", linewidth = 0.25) +
+  scale_fill_viridis_d(option = "plasma") +
+  guides(fill = "none") +
+  theme_void()
+```
+
+Notice that this map projection is the much feared and scary MERCATOR projection! AHHHHHH!  Let's switch to Robinson
+
+```{r}
+ggplot() + 
+  geom_sf(data = world_no_ant, 
+          fill = "#669438", color = "#32481B", linewidth = 0.25) +
+  coord_sf(crs = "___________") +  #set to the robinson projection
+  theme_void()
+```
+
+## Basic Plotting of the US  
+
+This same process works for any shapefile. The map of the US can also be projected differently—two common projections are NAD83 and Albers. We’ll take the `us_states` dataset, remove Alaska, Hawaii, and Puerto Rico (they’re so far from the rest of the lower 48 states that they make an unusable map—if you want to include them, it’s easiest to plot them as separate plots and use `patchwork` to stitch them together), and plot it.
+
+```{r}
+lower_48 <- us_states %>% 
+  filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico")))
+
+ggplot() + 
+  geom_sf(data = lower_48, fill = "#192DA1", color = "white", linewidth = 0.25) +
+  coord_sf(crs = 4269) +  # NAD83
+  theme_void()
+
+ggplot() + 
+  geom_sf(data = lower_48, fill = "#192DA1", color = "white", linewidth = 0.25) +
+  coord_sf(crs = "ESRI:102003") +  # Albers
+  theme_void()
+```
+
+Let's extract just California:
+
+```{r}
+only_ca <- lower_48 %>% 
+  filter(NAME == "_________")  #what variable value do we want to filter for?
+
+ggplot() +
+  geom_sf(data = only_ca, fill = "#205493") +
+  theme_void()
+```
+
+
+We can also use a different projection. If we look at spatialreference.org, there are several projections that center on CA.  
+```{r}
+ggplot() +
+  geom_sf(data = only_ca, fill = "#205493") +
+  theme_void() +
+  coord_sf(crs = "EPSG:2227")
+```
+
+### Plotting multiple shapefile layers
+
+The state shapefiles from the Census Bureau only include state boundaries. If we want to see counties in CA, we need to download and load the Census’s county shapefiles (which we did above). We can then add a second geom_sf() layer for the counties.
+
+First we need to filter the county data to only include CA counties. The counties data doesn’t include a column with the state name or state abbreviation, but it does include a column named STATEFP, which is the state FIPS code. Looking at `lower_48` we can see that the state FIPS code for CA is 06, so we use that to filter.
+
+```{r}
+ca_counties <- us_counties %>% 
+  filter(STATEFP == "06")
+```
+
+Now we can plot just the counties:
+
+```{r}
+ggplot() +
+  geom_sf(data = ca_counties) +
+  theme_void()
+```
+
+Technically we can just draw the county boundaries instead of layer the state boundary + the counties, since the borders of the counties make up the border of the state. But there’s an advantage to including both: we can use different aesthetics on each, like adding a thicker border on the state:  
+
+```{r}
+ggplot() +
+  geom_sf(data = only_ca, color = "#112E51", linewidth = 1.5) +
+  geom_sf(data = ca_counties, fill = "#DDDAC7", color = "#125A37") +
+  theme_void()
+```
+
+We can filter out the counties we want to highlight as well: 
+```{r}
+apu_counties <- ca_counties %>% 
+  filter(NAME %in% c("Los Angeles", "San Bernardino", "Riverside", "Orange"))
+
+
+ggplot() +
+  geom_sf(data = only_ca, color = "#112E51", linewidth = 1.5, fill = "white") +
+  geom_sf(data = apu_counties, fill = "#125A37", color = "#DDDAC7") +
+  theme_void()
+```
+
+
+### Plotting multiple shapefile layers when some are bigger than the parent shape
+
+So far we’ve been able to filter out states and counties that we don’t want to plot using `filter()`, which works because the shapefiles have geometry data for each state or county. But what if you’re plotting stuff that doesn’t follow state or county boundaries, like freeways, roads, rivers, or lakes?
+
+At the beginning we loaded a shapefile for all large and small rivers in the US. Look at the first few rows of `rivers_na`:
+
+```{r}
+head(rivers_na)
+```
+
+
+The first row is the whole Colorado river, which flows through seven states. We can’t just use `filter()` to only select some parts of it based on states.
+
+Here’s what happens if we combine our CA map with rivers and lakes:
+
+```{r}
+ggplot() +
+  geom_sf(data = only_ca, fill = "#125A37") +
+  geom_sf(data = rivers_na) +
+  theme_void()
+
+```
+
+We need to do a little GIS work to basically use `only_ca` as a cookie cutter and keep only the rivers that are contained in the `only_ca` boundaries. Fortunately, there’s a function in the sf package that does this: `st_intersection()`. Feed it two shapefile datasets and it will select the parts of the second that fall within the boundaries of the first:
+
+```{r, error = TRUE}
+ca_rivers_na <- st_intersection(only_ca, rivers_na)
+```
+
+Oh no! An error! It’s complaining that the reference systems used in these two datasets don’t match. We can check the CRS with `st_crs()`:
+
+```{r}
+st_crs(only_ca)
+```
+
+```{r}
+st_crs(rivers_na)
+```
+
+In the ID lines at the end, we see the CA map uses 4269 (or NAD83), while the rivers map uses 4326 (or the GPS system of latitude and longitude). We need to convert one of them to make them match. It does not matter which one.
+
+```{r}
+only_ca_4326 <- only_ca %>% st_transform(crs = 4326)
+
+ca_rivers_na <- st_intersection(only_ca_4326, rivers_na)
+## although coordinates are longitude/latitude, st_intersection assumes that they are planar
+#this code can take a while to run!
+```
+
+You’ll get an ominous warning, but you should be okay—it’s just because flattening globes into flat planes is hard, and the cutting might not be 100% accurate, but it’ll be close enough for our mapping purposes.
+
+Now we can plot our state shape and the truncated rivers:  
+
+```{r}
+ggplot() +
+  geom_sf(data = only_ca, fill = "#EC8E55") +
+  geom_sf(data = ca_rivers_na) +
+  theme_void()
+```
+
+We can add in other bodies of water as well - just keep an eye out for errors when we create the intersected data sets and be sure all data sets have the same CRS.
+
+```{r}
+sf_use_s2(FALSE)
+ca_rivers_na <- st_intersection(only_ca_4326, rivers_na)
+ca_rivers_global <- st_intersection(only_ca_4326, rivers_global)
+ca_lakes <- st_intersection(only_ca_4326, lakes)
+
+ggplot() +
+  geom_sf(data = only_ca_4326, 
+          color = "black", linewidth = 0.1, fill = "black") +
+  geom_sf(data = ca_rivers_global, linewidth = 0.3, color = "grey80") +
+  geom_sf(data = ca_rivers_na, linewidth = 0.15, color = "grey80") +
+  geom_sf(data = ca_lakes, linewidth = 0.3, fill = "grey80", color = NA) +
+  coord_sf(crs = 4269) +  # NAD83
+  theme_void()
+```
+
+
+## Adding Points to our layers  
+
+Let's take a look at CA State Parks  
+
+```{r}
+#https://gis.data.ca.gov/datasets/csparks::parkentrypoints?geometry=-161.228%2C31.065%2C-77.600%2C43.272
+park_ent <- read_sf("shapefiles/ParkEntryPoints/ParkEntryPoints.shp")
+
+head(park_ent)
+st_crs(park_ent)
+```
+
+
+Since our data is only for CA, we do not need to determine the intersection. 
+
+```{r}
+ggplot() +
+  geom_sf(data = only_ca_4326, 
+          color = "black", linewidth = 0.1, fill = "#8FBC8F") +
+  geom_sf(data = ca_rivers_global, linewidth = 0.3, color = "grey80") +
+  geom_sf(data = ca_rivers_na, linewidth = 0.15, color = "grey80") +
+  geom_sf(data = ca_lakes, linewidth = 0.3, fill = "grey80", color = NA) +
+  geom_sf(data = park_ent, color = "#704370", linewidth = 1.25) +
+  coord_sf(crs = 4269) +  # NAD83
+  theme_void() + 
+  ggtitle("CA State Park Entrances")
+```

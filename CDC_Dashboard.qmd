@@ -1,0 +1,115 @@
+---
+title: "Leading Causes of Death in the United States, 1999-2017"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(sf)
+library(scales) #needed for axis label numbers
+# Data sets loaded and formatted
+# We could create a cleaner project by saving our clean data sets as separate files and reading them in
+# US Shape File
+us_states <- read_sf("shapefiles/cb_2018_us_state_20m/cb_2018_us_state_20m.shp")
+#Just includes the lower 48 
+lower_48 <- us_states %>% 
+  filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico")))
+
+# Causes of Death Data  
+causes_raw <- read_csv("NCHS_-_Leading_Causes_of_Death__United_States.csv") %>% janitor::clean_names()
+
+# Joins shapefile with data on causes
+lower_48 %>% 
+  st_transform(5070) %>% 
+  left_join(causes_raw, by = c("NAME" = "state")) -> cause_sf
+
+# Calculates a value the mean used the graph as the mid point
+cause_sf %>%
+  filter(cause_name == "All causes", year == 2017) %>% 
+  summarise(avg = mean(age_adjusted_death_rate)) -> stats_cause
+```
+
+This dashboard presents number of deaths and age-adjusted death rates for the 10 leading causes of death, as well as all causes of death combined, in the United States and by state for 1999-2017. Data can be found at the [CDC.gov](https://www.cdc.gov/nchs/data-visualization/mortality-leading-causes/index.htm)
+
+
+Row {data-height=400}
+-------------------------------------
+
+   
+### 
+
+```{r}
+causes_raw %>% 
+  filter(year == 2017, 
+         state == "United States", 
+         cause_name != "All causes" ) %>%  #filters the rows to match the values for 2017 for the US and excludes all causes
+  arrange(desc(deaths)) %>% #arranges the data in descending order by deaths
+  head(10) %>%  # extracts the first 10 rows of the arrange causes
+  ggplot() + #initiates the plot
+  geom_col(aes(x = deaths, y = fct_reorder(cause_name, deaths),
+               fill = cause_name)) + #plots deaths and causes, filled by causes and ordered by number of deaths
+  scale_x_continuous(labels = scales::comma, breaks = c(0, 200000, 400000, 600000)) + #package scales allows us to make labels with commas and specify the tick marks we want
+  guides(fill = "none") + #remove the legend
+  scale_fill_brewer(palette = "Paired") +  #sets the colors for the bars (qual scale)
+  labs(title = "Number of Deaths for the 10 Leading Causes of Death:",
+       subtitle = "United States, 2017",
+       x = "", y = "",
+       citation = "Source: CDC.gov") + #labels and titles, no x/y is not a good practice but that is what they did originally
+  theme_classic() + #set broad theme elements 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) #moved title/subtitle to middle
+```   
+
+ 
+### 
+    
+```{r}
+causes_raw %>% 
+  filter(state == "United States", 
+         cause_name == "All causes" ) %>%  #just the US and all causes rows, keep all years
+  ggplot(aes(x = year, y = age_adjusted_death_rate)) + #initiate plot, establish x/y here since they are universal aesthetics for all geometries used
+  geom_point(color = "#2d4879", size = 3) + #sets point size/color since aes are already established
+  geom_line(color = "#2d4879", size = 1.2) + #sets line size/color since aes are already established
+  coord_cartesian(ylim = c(30, 900)) +  #sets y-axis liits
+  theme_classic() + #sets theme broadly
+  labs(y = "Rate per 100,000 U.S. Standard Population",
+       x = "",
+       title = "Age-Adjusted Death Rates for All Causes:",
+       subtitle = "United States, 1999-2017") + #labels
+  scale_y_continuous(labels = scales::number, n.breaks = 20 ) + #sets y to numbers, creates number of ticks
+  scale_x_continuous(n.breaks = 10) + #sets number of ticks on x
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) #center titles
+```
+
+
+
+
+
+
+Row {data-height=600}
+-------------------------------------------
+    
+### 
+
+```{r}
+
+```
+   
+### U.S. Death Rate for All Causes:  
+
+```{r fig.width = 0.15, fig.align = 'center'}
+# this adds the little value box number on the dashboard
+# notice you can use fig.width or fig.height to set the size of the graph in output in the document (in inches)
+
+us_value <-  causes_raw %>%
+  filter(cause_name == "All causes", year == 2017, state == "United States") %>% 
+  select(age_adjusted_death_rate)
+valueBox(us_value, 
+         caption = "U.S. Death Rate for All Causes: Age-adjusted death rate per 100,000 U.S. standard population", 
+         color = "primary")
+```
+
