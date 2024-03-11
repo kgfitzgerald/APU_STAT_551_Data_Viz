@@ -1,0 +1,320 @@
+---
+title: "Associations between Species Characteristics"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse)
+library(palmerpenguins)
+```
+
+## Palmer's Penguins
+To use the Palmer Penguin data we are going to do a bit of clean up first to variable names from the raw penguin data file. This is good practice for cleaning up 
+```{r}
+data("penguins") #loads penguin data sets  
+pengs <- penguins_raw %>% 
+  janitor::clean_names() %>% 
+  mutate(species = fct_recode(species, 
+             Adelie = "Adelie Penguin (Pygoscelis adeliae)",
+             Gentoo = "Gentoo penguin (Pygoscelis papua)",
+             Chinstrap = "Chinstrap penguin (Pygoscelis antarctica)"))
+
+names(pengs)
+```
+
+## Scatterplots  
+
+First, we might want to built just a simple scatterplot to determine if there is an association between culmen length (bill length) and culmen depth (bill depth).  
+
+```{r}
+ggplot(data = pengs,
+       aes(x = culmen_length_mm, y = culmen_depth_mm)) +
+  geom_point(size = 1.5) +
+  labs(x = "Culmen (Bill) Length (mm)",
+       y = "Culmen Depth (mm)",
+       title = "Penguin Species Characteristic Relationships",
+       subtitle = "Palmer Penuins' Culmen Length and Depth") +
+  theme_minimal()
+```
+
+Do you notice anything interesting?  
+
+There appears to be some specific "groups" of points - perhaps this is due to species variation.
+
+```{r}
+ggplot(data = pengs,
+       aes(x = culmen_length_mm, y = culmen_depth_mm)) +
+  geom_point(aes(color = species, shape = species), size = 1.5) + #could be added in ggplot() line as well
+  labs(x = "Culmen (Bill) Length (mm)",
+       y = "Culmen Depth (mm)",
+       title = "Penguin Species Characteristic Relationships",
+       subtitle = "Palmer Penguins' Culmen Length and Depth") +
+  theme_minimal() +
+  scale_color_viridis_d(name = "Penguin Species") +
+  guides(shape = "none") +
+  theme(legend.position = "bottom")
+```
+
+
+Remember back to our first exploration of this data?  There was also variation due to sex - we can add the shape parameter for sex.  Notice that there is an NA for some of the sex, we can drop that data if we want.  
+
+```{r}
+pengs %>% 
+  drop_na(sex) %>% 
+  ggplot(aes(x = culmen_length_mm, y = culmen_depth_mm)) +
+  geom_point(aes(color = species, shape = sex), size = 1.5) + #could be added in ggplot() line as well
+  labs(x = "Culmen (Bill) Length (mm)",
+       y = "Culmen Depth (mm)",
+       title = "Penguin Species Characteristic Relationships",
+       subtitle = "Palmer Penuins' Culmen Length and Depth",
+       color = "Penguin Species",
+       shape = "Penguin Sex") +
+  theme_minimal() +
+  scale_color_viridis_d() 
+```
+
+The above figure might be getting to crowded, so let's consider splitting it by facets.  Now I might consider coloring by sex and not species since the species are split into separate figures.
+
+```{r}
+pengs %>% 
+  drop_na(sex) %>% 
+  ggplot(aes(x = culmen_length_mm, y = culmen_depth_mm)) +
+  geom_point(aes(color = sex, shape = sex), size = 1.5) + #could be added in ggplot() line as well
+  labs(x = "Culmen (Bill) Length (mm)",
+       y = "Culmen Depth (mm)",
+       title = "Penguin Species Characteristic Relationships",
+       subtitle = "Palmer Penguins' Culmen Length and Depth",
+       color = "Penguin Sex") +
+  theme_minimal() +
+  scale_color_viridis_d(begin = 0, end = 0.5) +
+  facet_wrap(~species) +
+  guides(shape = "none") +
+  theme(legend.position = "bottom")
+```
+
+
+Perhaps we want to demonstrate a more clear linear relationship between the two variables - we can add on another geometry  
+
+```{r}
+library(ggtext)
+pengs %>% 
+  drop_na(sex) %>% 
+  ggplot(aes(x = culmen_length_mm, y = culmen_depth_mm)) +
+  geom_point(aes(color = sex, shape = sex), size = 1.5) + 
+  labs(x = "Culmen (Bill) Length (mm)",
+       y = "Culmen Depth (mm)",
+       title = "Palmer Penguin Species' Characteristic Relationships",
+       subtitle = "<span style='color:#238A8DFF'>**Male**</span> and 
+    <span style='color:#440154FF'>**Female**</span> Culmen Length and Depth",
+       color = "Penguin Sex") +
+  theme_minimal() +
+  scale_color_manual(breaks = c("MALE", "FEMALE"),
+                     values = c("#238A8DFF", "#440154FF"),
+                     labels = c("Male", "Female")) +
+  facet_wrap(~species, scales = "free_x") +
+  guides(shape = "none", color = "none") +
+  #geom_smooth adds the regression lines. The aes for color creates a different line for each sex; if you remove this aes, you get one line for each species. LM method is Linear Model
+  geom_smooth(aes(color = sex), method = "lm", se = FALSE) +
+  theme(plot.subtitle = element_markdown())
+
+unique(pengs$sex)
+```
+
+## Correlograms  
+
+We can select the factors we want to compare at scale for multiple correlations, but first we have to calculate them:
+
+```{r}
+char_correlations <- pengs %>% 
+  select(culmen_depth_mm, culmen_length_mm, flipper_length_mm, body_mass_g) %>% 
+  cor(method = "pearson", use = "pairwise.complete.obs")
+
+char_correlations
+```
+
+Next we will need to do a little data cleaning.  First, notice that our correlation matrix contains redundant information.  
+
+```{r}
+char_correlations[lower.tri(char_correlations)] <- NA
+char_correlations
+```
+
+Now we will reorganize the data so that each correlation is in a row with the two characteristics is it measuring the correlation.  
+
+```{r}
+char_cor_long <- char_correlations %>% 
+  as.data.frame() %>%  #turns the calculated values into a data frame
+  rownames_to_column("char2") %>%  # add the title char2 to the column name
+  pivot_longer(cols = -char2,
+               names_to = "char1",
+               values_to = "cor") %>%  #take wide data and makes it long
+  mutate(nice_cor = round(cor, 2)) %>%  #rounds the values
+  filter(char2 != char1) %>%  #gets rid of the repetitious rows
+  filter(!is.na(cor)) %>%  #gets rid of NAs
+  mutate(char1 = fct_inorder(char1), #adds underlying order by first appearance
+         char2 = fct_inorder(char2))
+
+char_cor_long
+```
+
+Now we can basically create a heat map for correlation values:
+
+```{r}
+ggplot(char_cor_long, 
+       aes(x = char2, y = char1, fill = cor)) +
+  geom_tile() +
+  geom_text(aes(label = nice_cor)) +
+  scale_fill_gradient2(low = "#238A8DFF", mid = "white", high = "#440154FF",
+                       limits = c(-1, 1),
+                       name = "Correlation") +
+  labs(x = NULL, y = NULL) +
+  coord_equal() +
+  theme_minimal() +
+  theme(panel.grid = element_blank()) +
+  scale_y_discrete(labels = c("body_mass_g" = "Body Mass(g)",
+                              "flipper_length_mm" = "Flipper Length (mm)",
+                              "culmen_length_mm" = "Culmen Length (mm)")) +
+  scale_x_discrete(labels = c("culmen_depth_mm" = "Culmen Depth (mm)",
+                              "flipper_length_mm" = "Flipper Length (mm)",
+                              "culmen_length_mm" = "Culmen Length (mm)"))
+  
+```
+
+We can also scale by points instead of tiles -
+
+```{r}
+ggplot(char_cor_long, 
+       aes(x = char2, y = char1, color = cor)) +
+  geom_point(aes(size = abs(cor))) +
+  geom_text(aes(label = nice_cor), color = "black", size = 3) +
+  scale_color_gradient2(low = "#238A8DFF", mid = "white", high = "#440154FF",
+                       limits = c(-1, 1),
+                       name = "Correlation") +
+  scale_size_area(max_size = 25, limits = c(-1, 1), guide = "none") +
+  labs(x = NULL, y = NULL) +
+  coord_equal() +
+  theme_minimal() +
+  theme(panel.grid = element_blank()) +
+  scale_y_discrete(labels = c("body_mass_g" = "Body Mass(g)",
+                              "flipper_length_mm" = "Flipper Length (mm)",
+                              "culmen_length_mm" = "Culmen Length (mm)")) +
+  scale_x_discrete(labels = c("culmen_depth_mm" = "Culmen Depth (mm)",
+                              "flipper_length_mm" = "Flipper Length (mm)",
+                              "culmen_length_mm" = "Culmen Length (mm)"))
+```
+
+### A much easier approach! ggcorrplot
+
+Resource: http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2
+
+```{r}
+#install.packages("ggcorrplot")
+
+```
+
+```{r}
+library(ggcorrplot)
+
+#work with the correlation matrix created earlier
+char_correlations
+
+ggcorrplot(char_correlations)
+
+#modify colors, etc
+ggcorrplot(char_correlations, 
+           outline.col = "white",
+           type="upper",
+           lab=TRUE,
+           ggtheme = theme_bw, 
+           colors = c("#238A8DFF", "white", "#440154FF"))
+
+
+#scaling by points
+ggcorrplot(char_correlations,
+           method = "circle",
+           type="upper",
+           outline.col = "white",
+           ggtheme = theme_bw, 
+           colors = c("#238A8DFF", "white", "#440154FF"))
+```
+
+### Other Options - GGally
+
+```{r}
+#install.packages("GGally")
+
+```
+
+```{r, fig.width = 10, fig.height = 8, message=FALSE, warning=FALSE}
+library(GGally)
+ggpairs(data = pengs, aes(color = species, fill = species),
+        columns = c('culmen_depth_mm', 'culmen_length_mm',
+                    'flipper_length_mm', 'body_mass_g',
+                    'species'),
+        columnLabels = c("Culmen Depth (mm)", "Culmen Length (mm)",
+                         "Flipper Length (mm)", "Body Mass (g)",
+                         "Species")) +
+  scale_color_viridis_d(alpha = 0.5, end = 0.75) +
+  scale_fill_viridis_d(alpha = 0.5, end = 0.75) +
+  theme_bw()
+```
+
+
+
+
+
+
+
+## Slope Graphs 
+
+Sometimes we want to show a comparison between two value that are paired or connected in some way.  
+
+We will use a slope graph to compare average weight between species - this isn't necessarily recommended because we are not going to see a measure of the variability, but for illustration purposes we will make it work.
+
+
+```{r, fig.height= 6, fig.width = 4.5}
+pengs %>% 
+  drop_na(sex) %>% 
+  group_by(species, sex) %>% 
+  summarise(`Average Body Mass (g)` = mean(body_mass_g, na.rm = TRUE)) %>% 
+  ggplot(aes(x = sex, y = `Average Body Mass (g)`, group = species, color = species)) +
+  geom_line(linewidth = 1.5) +
+  geom_point(size = 2) +
+  scale_colour_viridis_d() +
+  scale_x_discrete(breaks = c("MALE","FEMALE"),
+                   labels = c("Male", "Female")) +
+  theme_minimal() +
+  coord_cartesian(xlim = c(1.5, 1.5)) +
+  labs(x = "Sex of Penguins",
+       color = "Penguin Species",
+       title = "Penguin Body Mass by Species",
+       subtitle = "on the Palmer Archipeligo") +
+  theme(legend.position = "bottom")
+```
+
+
+
+```{r}
+pengs %>% 
+  drop_na(clutch_completion) %>% 
+  group_by(species, clutch_completion) %>% 
+  summarise(`Average Body Mass (g)` = mean(body_mass_g, na.rm = TRUE)) %>% 
+  ggplot(aes(x = clutch_completion, y = `Average Body Mass (g)`, group = species, color = species)) +
+  geom_line(linewidth = 1.5) +
+  geom_point(size = 2) +
+  scale_colour_viridis_d() +
+  theme_minimal() +
+  coord_cartesian(xlim = c(1.5, 1.5)) +
+  labs(x = "Completed Clutch",
+       color = "Penguin Species",
+       title = "Penguin Body Mass by Species",
+       subtitle = "on the Palmer Archipeligo")
+```
+

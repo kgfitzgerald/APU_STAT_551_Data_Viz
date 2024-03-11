@@ -96,7 +96,21 @@ Row {data-height=600}
 ### 
 
 ```{r}
-
+cause_sf %>%
+  #filter rows with all causes for 2017
+  filter(cause_name == "All causes", year == 2017) %>% 
+  ggplot() +  #initiate polot
+  geom_sf(aes(geometry = geometry,  #set aes for the map
+              fill = age_adjusted_death_rate), #set the color
+          color = "black", linewidth = 0.15) +  
+  labs(title = "Age-adjusted Death Rates for All causes, by State: 2017 ",
+       fill = "Legend for Age-Adjusted Death Rate Per 100,000 U.S. Standard Population")  +
+  scale_fill_gradient2(low = "#2d4879", high = "#911d1e", mid = "lightgrey",
+                       midpoint = stats_cause$avg) + #set the right coloring aesthetic to the desired scale
+  theme_void() + #theme that removes everything
+  theme(plot.title = element_text(hjust = 0.5), #adjusts title location
+        legend.position = "bottom") + #moves legend to the bottom
+  guides(fill = guide_colorbar(title.position = "top")) #puts the legend title on top of the colorbar
 ```
    
 ### U.S. Death Rate for All Causes:  

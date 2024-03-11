@@ -105,7 +105,7 @@ ggplot() +
 ```{r}
 ggplot() + 
   geom_sf(data = world_no_ant,
-          fill = _________, color = _______, linewidth = _______) + #pick a color for the countries, the color of their borders, and the width of the borders
+          fill = "skyblue", color = "black", linewidth = 0.1) + #pick a color for the countries, the color of their borders, and the width of the borders
   theme_void()
 ```
 
@@ -129,7 +129,7 @@ Notice that this map projection is the much feared and scary MERCATOR projection
 ggplot() + 
   geom_sf(data = world_no_ant, 
           fill = "#669438", color = "#32481B", linewidth = 0.25) +
-  coord_sf(crs = "___________") +  #set to the robinson projection
+  coord_sf(crs = "+proj=robin") +  #set to the robinson projection
   theme_void()
 ```
 
@@ -156,7 +156,7 @@ Let's extract just California:
 
 ```{r}
 only_ca <- lower_48 %>% 
-  filter(NAME == "_________")  #what variable value do we want to filter for?
+  filter(NAME == "California")  #what variable value do we want to filter for?
 
 ggplot() +
   geom_sf(data = only_ca, fill = "#205493") +
