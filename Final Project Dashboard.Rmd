@@ -1,0 +1,116 @@
+---
+title: "COVID-19 Cases in California"
+subtitle: "CDC and CDPH Differences in Reporting"
+output: flexdashboard::flex_dashboard
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+knitr::opts_chunk$set(echo = FALSE, comment = "", warning = FALSE, message = FALSE)
+```
+
+COVID-19 Data Reporting
+=====================================  
+
+Be sure to include:  
+- Data source/descriptions;  
+- any prerequisite data cleaning;  
+- questions to be asked of the data and answered in subsequent visualizations.  
+
+
+```{r include = FALSE}
+#the nice thing about cleaning your data and saving it is you do not have to put data cleaning in here
+sum_data_mo <- read_csv("CDPH_Monterey_Cases.csv")
+```
+
+
+
+Monterey County COVID-19 CASES
+=====================================  
+You can use different formats to include multiple visualizations or just focus on one visualization.
+https://rmarkdown.rstudio.com/flexdashboard/layouts.html#overview
+    
+Column {data-width=600}
+-------------------------------------
+    
+### Chart 1
+    
+```{r}
+mo_sum <- sum_data_mo %>% 
+  # filter(date > as.Date(as.Date(Sys.Date())-450) & 
+  #          date < as.Date(as.Date(Sys.Date()))-350) %>% 
+  mutate(agency = fct_recode(agency, "Episode Date (CDPH)" = "case", "Report Date (CDC)" = "cdc" )) %>% 
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = sum_per_100, color = agency, group=agency), size = 1) +
+  geom_abline(intercept = 50, slope = 0, color = "orange") +
+  geom_text(aes(x = as.Date(as.Date(Sys.Date())-400), y = 60, label = "Substantial Transmission"),
+            color = "orange") +
+  theme_light() +
+  labs(x = "Date", y = "Total Cases Per 100,000 Last 7 Days",
+       color = "Cases Measured on...",
+       title = "CDC and CDPH COVID Measures for Monterey County",
+       subtitle = "Differences in how each organization measures and reports cases lead to very different evaluations") +
+  scale_color_manual(values = c("cyan4","purple")) +
+  theme(legend.position = "bottom") +
+  aes(text = paste("Epsiode Date:", cases, "<br>Report Date:", report_prob,"<br>Date:", date), group = 1)  #this text is used for ggplotly interactive. notice the dummy aes() for group, this is the only way to get it work, don't ask me why... the "<br>" make line breaks
+
+#mo_sum
+
+
+ggplotly(mo_sum, tooltip = c("text"))
+```
+
+   
+Column {data-width=400}
+-------------------------------------
+   
+### How reporting and episode compare
+
+```{r}
+sum_data_mo %>% 
+  # filter(date > as.Date(as.Date(Sys.Date())-450) & 
+  #          date < as.Date(as.Date(Sys.Date()))-350) %>% 
+  #   filter(agency == "cdc") %>% 
+  ggplot(aes(x = date)) + 
+    geom_col(aes(y = report_prob, fill = "Report Date")) +
+    geom_col(aes(y = cases, fill = "Episode Date"), width = 0.5) +
+    theme_light() + 
+    labs(x = "Date 2022", y = "COVID-19 Cases Reported",
+         title = "Monterey County COVID-19 Cases by Date") +
+    scale_fill_manual(values = c("Report Date" = "grey","Episode Date" = "red"),
+                      breaks = c("Report Date", "Episode Date"),
+                      name = "Case Report Type") +
+    theme(legend.position = "bottom")
+```   
+ 
+
+
+Page 3 Title {data-orientation=rows}
+=====================================     
+   
+Row {data-height=600}
+-------------------------------------
+
+### Create interesting Headers
+And remember you can add text...
+
+```{r}
+plot(cars)
+```
+
+Row {data-height=400}
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+plot(cars)
+```   
+    
+### Chart 3
+
+```{r}
+plot(cars)
+```
