@@ -1,0 +1,124 @@
+---
+title: "After The Bell"
+author: "Katie Fitzgerald"
+date: "`r Sys.Date()`"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+library(tidyverse)
+```
+
+# Read the Data
+
+```{r}
+atb <- read_csv("./data/clean_data_challenge.csv")
+
+head(atb)
+#str(atb)
+```
+
+
+
+# Filter Data
+
+You might have a variable that either has missing data, or data where the parent skipped the question. Sometimes you might want to remove this missing data from your graph. But, not always! Sometimes the missing data is a part of the story. You will need to decide if the missing data is relevant or can be ignored. 
+
+You can use the `filter` function in R to remove responses (rows) that meet a certain criteria for removal
+```{r}
+
+#creating a graph of the enjoys variable
+#The plot with missing values included
+atb %>%
+  ggplot(aes(x = enjoys)) +
+  geom_bar()
+
+#The plot with missing values removed
+atb %>%
+  filter(enjoys != "Skip") %>%
+  ggplot(aes(x = enjoys)) +
+  geom_bar()
+```
+
+Alternatively, there will be times when you want to filter to INCLUDE only certain response options, instead of removing options. I could have made the same edit by specifying which response options to keep:
+
+```{r}
+
+#creating a graph of the enjoys variable
+
+#The plot with missing values removed
+atb %>%
+  filter(enjoys %in% c( "Strongly Disagree", "Agree", "Disagree", "Strongly Agree")) %>% #the order I list the levels does not matter
+  ggplot(aes(x = enjoys)) +
+  geom_bar()
+
+```
+
+There are many other rules you can use to filter data. 
+
+If you know there is a filter you want to make permanent, you can also filter the original dataset and store the revised dataset to use in graphs, instead of having to repeat the filter in multiple chunks of code. For example:
+```{r}
+#create a new dataset where rows are removed 
+atb_noskip <- atb %>%
+  filter(enjoys != "Skip")
+
+#now make the plot with my new dataset
+atb_noskip %>%
+  ggplot(aes(x=enjoys)) +
+  geom_bar()
+```
+
+# Changing the Level Order for a Categorical Variables
+
+## Manual Order
+
+How can you reorder the levels of a categorical variable? For example, the Enjoy variable is order, and we want the levels to appear in a logical order. Similar to colors, R will default to displaying the levels in alphabetical order. We can use the 'factor' function to change the order that the levels will display. 
+
+```{r}
+
+atb_noskip %>%
+  mutate(enjoys=factor(enjoys, levels=c("Strongly Disagree", "Disagree", "Agree", "Strongly Agree"))) %>%
+  ggplot(aes(x=enjoys)) +
+  geom_bar()
+
+```
+
+
+## Order by Another Variable
+
+Remember our Gestalt Principle, the Law of Simplicity? If our variable is nominal (there is not a natural order), we often want to order bars by their size. We saw extensive examples of this in our in-class R project “Visualizing Amounts and Perception” from Day 8 of class. Here is one example below, but see that R project for many more examples of reordering, combining, and wrangling category levels! 
+
+You will need to load the `forcats` library for these `fct` functions to work. The forcats package allows us to work directly with categorical variables in ways that make applying Gestalt Principle straightforward. Learn more about forcats here.
+
+We can use `fct_infreq` to apply the principle of simplicity.  
+
+Note that `forcats` also has a function, `fct_reorder`, that allows you to reorder levels by sorting along another variable. For example, this would allow you to reorder boxplots in descending order based on the median values. There was also an example of this in the same R project! 
+
+
+## Faceting with proportions removes color
+
+When faceting and plotting proportions, getting fill to work with the x variable is not straightforward. You cannot just do `fill = xvar`. 
+
+```{r}
+custom_order <- c("Always", "Sometimes", "Rarely", "Never")
+
+
+atb %>%
+  filter(hmwk_check != "Skip") %>%
+  mutate(hmwk_check = factor(hmwk_check, levels = custom_order)) %>%
+  ggplot() +
+  geom_bar(mapping = aes(x = hmwk_check, fill = factor(..x..), y = after_stat(prop), group=1)) +
+  scale_fill_viridis_d() +
+  facet_wrap(~grades)
+```
+

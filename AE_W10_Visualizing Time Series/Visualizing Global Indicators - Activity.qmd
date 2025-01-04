@@ -1,0 +1,68 @@
+---
+title: "Visualizing Economic and Health Indicators"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE, comment = "",
+                      message = FALSE, warning = FALSE)
+library(tidyverse)
+library(gghighlight)
+library(ggrepel)
+library(extrafont) #adds new font options
+library(gridExtra) #provides some additional functionality for faceted plots
+loadfonts(device = "all") #must use font_import() first (once per device)
+theme_set(theme_minimal()) #sets a universal theme for all the plots!
+```
+
+## Gapminder Data 
+
+In the gapminder folder, we have five data sets that provide information by country.  For each one, we will have to organize the data from a wide format, with year as the column names, to a long format.
+
+```{r}
+child <- read_csv("gapminder/child_mortality_0_5_year_olds_dying_per_1000_born.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "child_mortality")
+
+fertility <- read_csv("gapminder/children_per_woman_total_fertility.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "child_per")
+
+income <- read_csv("gapminder/income_per_person_gdppercapita_ppp_inflation_adjusted.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "gdpPerCap")
+
+lifeExp <- read_csv("gapminder/life_expectancy_years.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "lifeExp")
+
+population <- read_csv("gapminder/population_total.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "population")
+```
+
+
+We can then join together the data by their common variables, which are year and country:
+
+```{r}
+full_country <- population %>% 
+  left_join(child, by = c("country", "year")) %>% 
+  left_join(lifeExp, by = c("country", "year")) %>% 
+  left_join(fertility, by = c("country", "year")) %>% 
+  left_join(income, by = c("country", "year")) %>% 
+  mutate(year = as.numeric(year)) #year is being treated as a categorical variable, we want it to be numeric
+```
+
+
+You can download additional data at https://www.gapminder.org/data/
+
+## Visualizing History
+
+Use the provided data (or add more information following the template code for combining data files) and create a visualization that looks at some historical event through the specific metrics of interest.  
+
+```{r}
+
+```
+
+

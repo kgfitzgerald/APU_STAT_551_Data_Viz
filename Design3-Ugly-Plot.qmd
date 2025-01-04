@@ -23,9 +23,10 @@ library(ggrepel) #for labeling
 
 Use the comment option in the code chunks `# comment` to identify what is happening throughout the code chunks.
 
-### Data Cleaning  
+### Data Cleaning
 
 First, we must read in the data
+
 ```{r data, message = FALSE}
 hiv <- read_csv("./data/HIV2015.csv") #loads in data
 ```
@@ -39,10 +40,6 @@ hiv_update <- hiv %>%
                             ifelse(state_abr == "US", "US", Midwest)))  #specifies stat_fin as US, WI, Y/N for Midwest for shading
   
 ```
-
-
-
-
 
 ## First Draft
 
@@ -66,7 +63,7 @@ ggplot(data = hiv_update) +                            #comment
   scale_y_continuous(expand = c(0,0), limits = c(0,60))   #comment
 ```
 
-Notice that our order of Wisconsin and WV are not the same as the original graph - if we look at it we see they have the same value.  Why?
+Notice that our order of Wisconsin and WV are not the same as the original graph - if we look at it we see they have the same value. Why?
 
 ```{r data_check}
 hiv_update %>% 
@@ -108,14 +105,13 @@ The above graph went through a lot of modification to make it "just so" in appea
 
 Our goal is to use R to make this graph ugly - everything from defying principles of perception, Gestalt principles, color theory, and general visual appeal (text, readability, etc).
 
-Here are two resources: 
+Here are two resources:
 
-- [ggplot2 Cheatsheet with search options](https://www.computerworld.com/article/2935394/my-ggplot2-cheat-sheet-search-by-task.html)  
+-   [ggplot2 Cheatsheet with search options](https://www.computerworld.com/article/2935394/my-ggplot2-cheat-sheet-search-by-task.html)
 
-- [A ggplot2 tutorial for beautiful plotting](https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/)  
+-   [A ggplot2 tutorial for beautiful plotting](https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/)
 
-
-Update the code below to make the graph ugly. While you may remove some code to remove specific features, you **must also add 6 more code** options to make it uglier than the default settings for `ggplot2`. Reverting to the default is not sufficient for this assignment. The goal of this assignment is to help you learn more about all the ways you can customize a plot.  Keep track of useful and interesting code features that you might use in the future.  
+Update the code below to make the graph ugly. While you may remove some code to remove specific features, you **must also add 6 more code** options to make it uglier than the default settings for `ggplot2`. Reverting to the default is not sufficient for this assignment. The goal of this assignment is to help you learn more about all the ways you can customize a plot. Keep track of useful and interesting code features that you might use in the future.
 
 Modify the code below with at least **6 new customizations** to make it ugly:
 
@@ -144,23 +140,14 @@ hiv_update %>%
 
 ```
 
-
-Create a .png file of your final graph (see Design Task #2 for an example). Be sure to specify approach sizes.  Call the image `LastFirst_UglyGraph.png`
-
+Create a .png file of your final graph (see Design Task #2 for an example). Be sure to specify approach sizes. Call the image `LastFirst_UglyGraph.png`
 
 ## Reflection
 
-What types of features did you modify to make the graph "ugly? Why did you choose those features?  
-
-> Insert Answer Here  
-
-
-What were some interesting code features of `ggplot2` that you learned during this design task? 
+What types of features did you modify to make the graph "ugly? Why did you choose those features?
 
 > Insert Answer Here
 
+What were some interesting code features of `ggplot2` that you learned during this design task?
 
-
-
-
-
+> Insert Answer Here

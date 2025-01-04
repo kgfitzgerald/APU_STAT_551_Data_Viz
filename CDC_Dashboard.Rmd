@@ -19,7 +19,7 @@ lower_48 <- us_states %>%
   filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico")))
 
 # Causes of Death Data  
-causes_raw <- read_csv("NCHS_-_Leading_Causes_of_Death__United_States.csv") %>% janitor::clean_names()
+causes_raw <- read_csv("data/NCHS_-_Leading_Causes_of_Death__United_States.csv") %>% janitor::clean_names()
 
 # Joins shapefile with data on causes
 lower_48 %>% 

@@ -122,8 +122,6 @@ Sometimes, we may not need to inspect the full dataset but simply want to get a 
 glimpse(penguins)
 ```
 
-<div>
-
 ## Exercise 1
 
 What are the **dimensions** of this dataset?
@@ -137,8 +135,6 @@ How many **categorical variables** are in this dataset? What are they?
 What are the names of the three `species` of penguins represented in this data? *Hint: pull up the dataset documentation by running `?penguins` in your console*
 
 > YOUR ANSWER HERE
-
-</div>
 
 At this point, you might notice that many of the commands in `R` look a lot like functions from math class; that is, invoking `R` commands means supplying a function with some number of inputs (what are called arguments) which the function uses to produce an output. The `glimpse()` function, for example, took a single argument - the name of a data frame - and produced a display of the dataset as an output.
 
@@ -171,8 +167,6 @@ These commands will build a blank plot, with the variables you assigned to the x
 
 Since we want a bar plot, we use `geom_bar()`.
 
-<div>
-
 ## Exercise 2
 
 Consider a different research question: ***Which of the three Antartica `island`s in this dataset is most populated with penguins?***
@@ -187,8 +181,6 @@ Create an appropriate visualization to investigate the above research question. 
 #| label: create-new-visualization
 
 ```
-
-</div>
 
 # Two categorical variables
 
@@ -210,15 +202,11 @@ ggplot(penguins, aes(x = island, fill = species)) +
   geom_bar(position = "fill")
 ```
 
-<div>
-
 # One numeric variable
 
 ***How much do penguins weigh?***
 
 Note that weight is a **numeric variable,** so we can use a **histogram**, **dotplot**, or **boxplot** to visualize it. Histograms are probably the most common, so that's what we'll create. We'll use `geom_histogram()` instead of `geom_bar()`. Feel free to try out `geom_dotplot()` and/or `geom_boxplot()` on your own.
-
-<div>
 
 ## Exercise 3
 
@@ -238,8 +226,6 @@ ggplot(______, aes(x = ______)) +
 Extra practice: try adding `color = "white"` inside `geom_histogram()` to make the histogram a little more aesthetically pleasing.
 
 **REMINDER: now is a good time to click "Render" to make sure that the changes you've made in your .qmd make their way into your .html without errors. If you do not see the histogram appear in the html, make sure you have switched `false` to `true` in the above code chunk.**
-
-</div>
 
 # One numeric & one categorical variable
 
@@ -272,15 +258,11 @@ ggplot(penguins, aes(x = body_mass_g, y = species)) +
   geom_density_ridges()
 ```
 
-<div>
-
 # Two numeric variables
 
 ***What is the relationship between bill length and flipper length of penguins?***
 
 To investigate this question, we need a **scatterplot** because we are dealing with **two numeric variables**.
-
-<div>
 
 ## Exercise 4
 
@@ -301,8 +283,6 @@ Use the visualization to answer the research question. That is, describe the rel
 
 > YOUR ANSWER HERE
 
-</div>
-
 # More than 2 variables
 
 We can utilize extra `aes`thetics (in addition to x- and y-axis) such as `color`, `shape`, or `size` to investigate relationships of more than two variables.
@@ -319,10 +299,6 @@ ggplot(penguins, aes(x = bill_length_mm, y = flipper_length_mm,
   geom_point()
 ```
 
-<div>
-
-
-
 # Practice on new data
 
 You've now been exposed to code for creating visualizations for many different data types. Now, it's your turn to practice choosing an appropriate visualization for new data and research questions.
@@ -338,8 +314,6 @@ socialexp <- openintro::socialexp
 ```
 
 After running the above code chunk, you can view the full data by double clicking it in your `Environment` tab, or get a quick glimpse by running the code `glimpse(socialexp)` in your console.
-
-<div>
 
 ## Exercise 5
 
@@ -371,8 +345,6 @@ Comment on what you found.
 
 > YOUR ANSWER HERE
 
-</div>
-
 ## Marvel Cinematic Universe Data
 
 The dataset `mcu_films` from the `openintro` package contains data from movies in the Marvel Cinematic Universe (through 2019). The code below loads this data:
@@ -384,8 +356,6 @@ mcu_films <- openintro::mcu_films
 ```
 
 You can view the full data by double clicking it in your `Environment` tab, or get a quick glimpse by running the code `glimpse(mcu_films)` in your console. You can read more about the dataset by running `?mcu_films` in your console.
-
-<div>
 
 ## Exercise 6
 
@@ -411,11 +381,7 @@ What's one thing the visualization makes you wonder about the data?
 
 > YOUR ANSWER HERE
 
-</div>
-
 # BONUS practice (extra credit)
-
-<div>
 
 ## BONUS 1
 
@@ -431,13 +397,9 @@ State an additional research question that can be investigated using the `pengui
 
 > YOUR COMMENTS HERE
 
-</div>
-
-<div>
-
 ## BONUS 2
 
-We've just scratched the surface of what `ggplot` and R code can do! For a peek at some more advanced code and visualizations, try to recreate one or more of the visualizations from this [blogpost](https://rstudio-pubs-static.s3.amazonaws.com/644291_862b5d1c55a044149d9a2cd2109d300c.html) using the code provided. 
+We've just scratched the surface of what `ggplot` and R code can do! For a peek at some more advanced code and visualizations, try to recreate one or more of the visualizations from this [blogpost](https://rstudio-pubs-static.s3.amazonaws.com/644291_862b5d1c55a044149d9a2cd2109d300c.html) using the code provided.
 
 ```{r}
 #| label: bonus-2-code
@@ -445,10 +407,4 @@ We've just scratched the surface of what `ggplot` and R code can do! For a peek 
 #blogpost code here - remove the hashtag!
 ```
 
-# Submission
-
-Once all Exercises have been completed, render the document one last time. Look over the .html document (in the Viewer pane) to make sure all your answers are visible and formatted as you intended.
-
-To submit this assignment, you need to upload the .html file to the relevant Week 3 assignment on Canvas.
-
-
+# 

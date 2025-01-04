@@ -25,18 +25,19 @@ library(ggplot2)
 library(waffle)
 ```
 
-
 ## Preparating Your Data
-First, we are going to set up your data.  For `birth_year` put the year you were born and for `birth_month` put the number that corresponds with the month you were born.  `last_year` and `last_month` are set to your birth month minus 1 and your birth year plus 80.
+
+First, we are going to set up your data. For `birth_year` put the year you were born and for `birth_month` put the number that corresponds with the month you were born. `last_year` and `last_month` are set to your birth month minus 1 and your birth year plus 80.
 
 ```{r}
 birth_year <- 1993
-birth_month <- 1 #May
+birth_month <- 1 #January
 last_year <- birth_year + 80
 last_month <- birth_month - 1
 ```
 
-Next, we are going to create the framework for your life in months.  All you have to do for the next chunk is run the code - it will generate a data frame that contains all the years and months from your birth until the month and year 80 years after your birth.  
+Next, we are going to create the framework for your life in months. All you have to do for the next chunk is run the code - it will generate a data frame that contains all the years and months from your birth until the month and year 80 years after your birth.
+
 ```{r}
 life_data <- expand_grid(
   month = month.name,
@@ -50,10 +51,9 @@ life_data <- expand_grid(
   filter(!(year == last_year & month_number > last_month))
 ```
 
-
 ## Defining your Eras
 
-You will adapt the code below to define your eras and colors for each era.  Put the "year,month", "era name", "color" - you can use the name of the color or the hex code for the color (use the color picker here to find the hex codes: https://colorpicker.me/).
+You will adapt the code below to define your eras and colors for each era. Put the "year,month", "era name", "color" - you can use the name of the color or the hex code for the color (use the color picker here to find the hex codes: https://colorpicker.me/).
 
 You do not have to use the eras defined here - you can add, change, or remove lines as needed.
 
@@ -73,6 +73,7 @@ eras <- tribble(
 ```
 
 Now run the following code - this will add your eras to your life in months.
+
 ```{r}
 era_names <- paste0(eras$era)
 life_data_era <- life_data %>%
@@ -87,12 +88,13 @@ life_data_era <- life_data %>%
 ```
 
 You can look at the data using the following code:
+
 ```{r eval=FALSE}
 View(life_data_era)
 ```
 
-
 Now, let's create the waffle chart! Run the code to create the graph, but change the title name to match your name:
+
 ```{r}
 waffle_life<-life_data_era %>%
   count(era) %>% ## the count of each era is the number of months in that era
@@ -110,12 +112,12 @@ waffle_life<-life_data_era %>%
   theme(plot.title = element_text(face = "bold", size = 40))
 waffle_life
 ```
+
 If you get an error that "geom_waffle" is not found, you may need to restart you R Session (under Session).
 
-
 Now we can save the image - Change out your professor's name with your name. You can adjust the ratio for height/width as needed.
+
 ```{r}
 ggsave("DrFitz_Life_in_Months.png", plot = waffle_life, 
        device = "png", width = 25, height = 15, dpi = 300)
 ```
-

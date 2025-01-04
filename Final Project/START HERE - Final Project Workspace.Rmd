@@ -1,0 +1,27 @@
+---
+title: "Final Project Workspace"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+```
+
+Please provide the following information in addition to your final dashboard.
+
+
+
+## Data Source and Cleaning
+
+Include links and information to the data used, describe the data and plan out your questions.
+
+
+## Data Cleaning
+
+Provide any code you used to clean or prepare your data if needed to make your visualizations
+
+
+## Visualization Preparation
+
+Provide any code to create your visualizations or perhaps to play around with different ideas.  You can leave code here that you might not use in your final dashboard.
+

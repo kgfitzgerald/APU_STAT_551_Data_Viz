@@ -1,0 +1,49 @@
+Bacteria,BacteriaAbbr,Gram_Staining,Antibiotic,MIC
+Aerobacter aerogenes,Aerobact,negative,Penicilin,870
+Aerobacter aerogenes,Aerobact,negative,Streptom,1
+Aerobacter aerogenes,Aerobact,negative,Neomycin,1.6
+Brucella abortus,Brucella ab,negative,Penicilin,1
+Brucella abortus,Brucella ab,negative,Streptom,2
+Brucella abortus,Brucella ab,negative,Neomycin,0.02
+Brucella antracis,Brucella an,positive,Penicilin,0.001
+Brucella antracis,Brucella an,positive,Streptom,0.01
+Brucella antracis,Brucella an,positive,Neomycin,0.007
+Diplococcus pneumoniae,Diplococc,positive,Penicilin,0.005
+Diplococcus pneumoniae,Diplococc,positive,Streptom,11
+Diplococcus pneumoniae,Diplococc,positive,Neomycin,10
+Escherichia coli,Escherichi,negative,Penicilin,100
+Escherichia coli,Escherichi,negative,Streptom,0.4
+Escherichia coli,Escherichi,negative,Neomycin,0.1
+Klebsiella pneumoniae,Klebsiella,negative,Penicilin,850
+Klebsiella pneumoniae,Klebsiella,negative,Streptom,1.2
+Klebsiella pneumoniae,Klebsiella,negative,Neomycin,1
+Mycobacterium tuberculosis,Mycobact,negative,Penicilin,800
+Mycobacterium tuberculosis,Mycobact,negative,Streptom,5
+Mycobacterium tuberculosis,Mycobact,negative,Neomycin,2
+Proteus vulgaris,Proteus v,negative,Penicilin,3
+Proteus vulgaris,Proteus v,negative,Streptom,0.1
+Proteus vulgaris,Proteus v,negative,Neomycin,0.1
+Pseudomonas aeruginosa,Pseudom,negative,Penicilin,850
+Pseudomonas aeruginosa,Pseudom,negative,Streptom,2
+Pseudomonas aeruginosa,Pseudom,negative,Neomycin,0.4
+Salmonella (Eberthella) typhosa,Salmonella t,negative,Penicilin,1
+Salmonella (Eberthella) typhosa,Salmonella t,negative,Streptom,0.4
+Salmonella (Eberthella) typhosa,Salmonella t,negative,Neomycin,0.008
+Salmonella schottmuelleri,Salmonells s,negative,Penicilin,10
+Salmonella schottmuelleri,Salmonells s,negative,Streptom,0.8
+Salmonella schottmuelleri,Salmonells s,negative,Neomycin,0.09
+Staphylococcus albus,Staphyloc al,positive,Penicilin,0.007
+Staphylococcus albus,Staphyloc al,positive,Streptom,0.1
+Staphylococcus albus,Staphyloc al,positive,Neomycin,0.001
+Staphylococcus aureus,Staphyloc au,positive,Penicilin,0.03
+Staphylococcus aureus,Staphyloc au,positive,Streptom,0.03
+Staphylococcus aureus,Staphyloc au,positive,Neomycin,0.001
+Streptococcus fecalis,Streptoco f,positive,Penicilin,1
+Streptococcus fecalis,Streptoco f,positive,Streptom,1
+Streptococcus fecalis,Streptoco f,positive,Neomycin,0.1
+Streptococcus hemolyticus,Streptoco h,positive,Penicilin,0.001
+Streptococcus hemolyticus,Streptoco h,positive,Streptom,14
+Streptococcus hemolyticus,Streptoco h,positive,Neomycin,10
+Streptococcus viridans,Streptoco v,positive,Penicilin,0.005
+Streptococcus viridans,Streptoco v,positive,Streptom,10
+Streptococcus viridans,Streptoco v,positive,Neomycin,40

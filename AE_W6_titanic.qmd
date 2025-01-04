@@ -1,0 +1,212 @@
+---
+title: "Titantic Survivors"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse)
+library(janitor)
+```
+
+## The Titanic Data  
+
+```{r}
+titanic_full <- janitor::clean_names(read_csv("data/titanic3.csv"))
+names(titanic_full) #list of the variable names
+```
+
+```{r}
+titanic_full %>% head(20) #lists first 20 rows
+```
+
+
+Let's do some basic data wrangling to "clean up" some of our variable levels to create factors instead of numbers. Comment on the code - what is happening?
+
+```{r}
+titanic_full <- mutate(titanic_full, 
+                       passenger_class = fct_recode(as.factor(pclass),
+                                                    "1st" = "1", 
+                                                    "2nd" = "2", 
+                                                    "3rd" = "3"),
+                       survival = fct_recode(as.factor(survived),
+                                             "Died" = "0", 
+                                             "Survived" = "1"))
+titanic_full %>% head(20)
+```
+
+
+Let's also take a look at our data and what is missing:
+
+```{r}
+library(naniar)
+titanic_full %>% 
+  gg_miss_var(facet = sex) 
+```
+
+
+
+
+
+### Women and Children First?
+
+What does the code below do?
+```{r}
+titanic_full %>% 
+  count(passenger_class, sex, survival)
+```
+
+
+
+## Stacked and Side-by-Side Bar Plots
+
+### Stacked Bar Plot  
+Modify the code to clean up the visualization
+```{r}
+titanic_full %>% 
+  drop_na(survival) %>% #excludes rows where survival is NA
+  ggplot(aes(x = passenger_class, fill = survival)) + #specifies aes() universally for all geoms
+  geom_bar(position = "fill")  #modifer for stacked but proportions
+
+```
+
+### Side-by-Side Bar Plot
+
+```{r}
+titanic_full %>% 
+  drop_na(survival) %>% 
+  ggplot(aes(x = survival)) +  #sets x aes to survival
+  geom_bar(aes(y = after_stat(prop),     #specifies we want the bar heights to be proportions
+               group = passenger_class), #specifies that we want to condition on passenger class
+           position = "dodge") + #modifier for dodge
+  facet_wrap(~passenger_class, nrow = 1) #splits graphs by passenger class
+```
+
+If we wanted to add sex to our visualization, we might want to consider removing redundant information - if we know the proportion that died we then know the proportion that survived (or vice versa).  
+
+```{r}
+titanic_full %>% 
+  count(passenger_class, sex, survival) %>%  #counts individuals by class, sex, and survival status and stores the count in a variable called 'n'
+  group_by(passenger_class, sex) %>% #groups class and sex for the next calcuation in mutate()
+  mutate(proportion = n/sum(n)) %>% #sum(n) will add up just the total by class and sex and then we divide the count for survival by those totals
+  filter(survival == "Survived") %>% #removes the proportions for "Died"
+  
+  #Notice the graphic code is here - everything before it is data cleaning!
+  ggplot(aes(x = sex, y = proportion, fill = passenger_class)) + #sets universal aes()
+  geom_col(position = "dodge")  #modfied, notice geom is col since we specified y = proportion as our bar height
+ 
+```
+
+
+## Stacked Density Plots
+One of the ideas is "Women and Children First!" so we may want to see if survival is impacted by both age and sex.  
+```{r}
+titanic_full %>% 
+  ggplot(aes(x = age, #using a quantitative value here, or ordered variable
+             fill = survival,   #fills in color
+             color = survival)) +  #colors the line too 
+  geom_density(position = "fill")   #geometry density with modifier
+```
+
+
+
+Is this pattern true regardless of sex?
+
+```{r}
+titanic_full %>% 
+  drop_na(sex) %>% 
+  ggplot(aes(x = age, 
+             fill = survival, 
+             color = survival)) + 
+  geom_density(position = "fill") + 
+  facet_grid(sex ~ passenger_class)  #faceted by sex and class
+```
+
+
+## Mosaic Plot
+
+```{r}
+library(ggmosaic)
+ggplot(titanic_full) +
+  geom_mosaic(aes(x = product(passenger_class, sex),  #sets the two variables (more can be set)
+                  fill = survival), #fills by survival
+              na.rm = TRUE, #tells it to ignore na
+              offset = 0.02) #offsets the rectangles
+```
+
+
+
+
+## Treemap
+
+```{r}
+library(treemapify)
+titanic_full %>% 
+  count(passenger_class, survival) %>% #creates counts first
+  drop_na() %>%
+  ggplot(aes(area = n, # area aes() should be count
+             fill = survival,  #color of groups
+             subgroup = passenger_class)) +  #subgroup aes()
+  geom_treemap(color = "black") +  #generates treemap with black border
+  geom_treemap_subgroup_border(color = "black") +  #generates subgroup borders with black border
+  geom_treemap_subgroup_text(color = "black")  #adds text to id subgroup
+```
+
+
+
+Let's look at age - 
+```{r}
+titanic_full %>% 
+  mutate(age_group = case_when(  #creates new variable called age_group
+    age < 18 ~ "Children",       #case_when lets you specify a range of values and then set the group name
+    age < 60 ~ "Middle Age", 
+    age < 100 ~ "Elderly")) %>% 
+  count(sex, age_group, survival) %>% 
+  drop_na() -> titanic_up
+
+ggplot(data = titanic_up,
+       aes(area = n, 
+           fill = survival, 
+           subgroup = age_group,
+           subgroup2 = sex,
+           color = age_group)) +
+  geom_treemap() +
+  geom_treemap_subgroup_border(color = "black") + 
+  geom_treemap_subgroup_text(place = "centre", 
+                             grow = TRUE, 
+                             alpha = 0.75,
+                             fontface = "italic", 
+                             min.size = 0) + 
+  geom_treemap_subgroup2_border(color = "white", size = 1) +
+  geom_treemap_subgroup2_text(aes(color = sex), 
+                              grow = FALSE,
+                              size = 12) 
+```
+
+
+
+
+## Sankey Plot              
+
+```{r}
+library(ggalluvial)
+
+titanic_full %>% 
+  count(survival, sex, passenger_class) %>%   #summarizes counts
+  ggplot(aes(y = n,   #counts
+             axis1 = sex,  #first group
+             axis2 = passenger_class,  #second group
+             axis3 = survival, #third group
+             fill = survival)) +  #color choice variable
+  geom_alluvium(alpha = 0.75, reverse = TRUE) +  #alpha is transparency, reverse is the order variables are printed
+  geom_stratum(width = 1/8, reverse = TRUE) + #how wide each axis variable is
+  geom_text(stat = "stratum", 
+            aes(label = after_stat(stratum)),  #adds labels to stratum
+            reverse = TRUE) 
+```
+
+
+
+
+
+

@@ -1,0 +1,76 @@
+---
+title: "Create a Title for the Project"
+output: flexdashboard::flex_dashboard
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+Introductory Dashboard
+=====================================  
+
+Be sure to include:  
+- Data source/descriptions;  
+- any prerequisite data cleaning;  
+- questions to be asked of the data and answered in subsequent visualizations.  
+
+
+
+
+Page 2 - Add a Title!
+=====================================  
+You can use different formats to include multiple visualizations or just focus on one visualization.
+https://rmarkdown.rstudio.com/flexdashboard/layouts.html#overview
+    
+Column {data-width=600}
+-------------------------------------
+    
+### Chart 1
+    
+```{r}
+plot(cars)
+```
+   
+Column {data-width=400}
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+plot(cars)
+```   
+ 
+### Leave the three hashtags and delete text for no title
+    
+```{r}
+plot(cars)
+```
+
+Page 3 Title {data-orientation=rows}
+=====================================     
+   
+Row {data-height=600}
+-------------------------------------
+
+### Create interesting Headers
+And remember you can add text...
+
+```{r}
+plot(cars)
+```
+
+Row {data-height=400}
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+plot(cars)
+```   
+    
+### Chart 3
+
+```{r}
+plot(cars)
+```

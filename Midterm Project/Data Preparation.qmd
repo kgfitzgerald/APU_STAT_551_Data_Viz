@@ -1,0 +1,63 @@
+---
+title: "Data Preparation - Fall Data Challenge"
+author: "Judith Canner"
+format: html
+---
+
+## Original Data
+
+```{r setup}
+library(readxl)
+library(tidyverse)
+```
+
+
+Here is the necessary data for 2019:
+
+```{r}
+data2019 <- read_excel("./data/2022 Fall Data Challenge Dataset.xlsx", sheet = 1, na = c("-9", "-6"))
+```
+
+```{r}
+var_types <- read_excel("./data/2022 Fall Data Challenge Curated Dataset Codebook.xlsx", sheet = 1)
+```
+
+
+
+```{r eval = FALSE}
+new <- data2019
+for (i in seq(1,147,2)) {
+  new <- new %>% left_join(var_types[,(i):(i + 1)], )
+}
+```
+
+
+```{r}
+library(magrittr)
+new %<>% 
+  mutate(num_cyber = INTNUM,
+         frq_meet = FSFREQ,
+         homework_hours = FHWKHRS,
+         birth_year = CDOBYY,
+         household_size = HHTOTALXX,
+         first_guardian_hours = P1HRSWK,
+         first_guardian_work = P1MTHSWRK,
+         first_guardian_age = P1AGE,
+         num_siblings = NUMSIBSX)
+```
+
+Fix the -1 Skip value for numeric variables
+
+```{r}
+new %<>% 
+  mutate(across(.cols = current_grade:zip_class, .fns = ~ifelse(.x == -1, NA, .x)))
+```
+
+```{r}
+write_csv(new, "./data/clean_data_challenge.csv", na = "")
+```
+
+
+
+
+

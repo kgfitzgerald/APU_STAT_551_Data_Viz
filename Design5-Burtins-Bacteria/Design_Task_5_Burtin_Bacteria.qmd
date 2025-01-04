@@ -1,0 +1,94 @@
+---
+title: "Burtin's Bacteria"
+author: "Your Name"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse)
+```
+
+## Burtin's Bacteria  
+
+Doctors need to be able to make quick decisions about which antibiotics to prescribe when a patient has a bacterial infection. Different bacteria respond differently to various antibiotics. Additionally, it can take too much time to identify a particular bacterial strain; Gram Staining is an assessment that can be done within the clinic to help "type" the bacteria and more quickly assess which antibiotic to use. 
+
+Minimum Inhibitory Concentration (MIC) is commonly used as a measure of how effective an antibiotic is at killing a bacteria. The numeric measure can be thought of as measuring how much antibiotic is needed in a petri dish in order to kill the bacteria; **a smaller MIC number is better because it means the antibiotic was more effective at killing the bacteria with a smaller dose.** 
+
+After World War II, antibiotics earned the moniker “wonder drugs” for quickly treating previously-incurable diseases. Data was gathered to determine which drug worked best for each bacterial infection. Comparing drug performance was an enormous aid for practitioners and scientists alike. 
+
+In the fall of 1951, German graphic designer William Burtin gathered data on the MIC of three antibiotics for 16 different bacteria.  Each bacteria was classified according to Gram Staining: Positive/Negative.  
+
+
+
+In this project, you will create visualizations to answer three questions.  One of the goals of the design task is to answer all three questions with no more than three visualizations, preferably fewer (i.e., try to answer all three questions in fewer than 3 visualizations).  All visualizations will be organized on a single static dashboard using the `flexdashboard` package.  Find more information here: https://rmarkdown.rstudio.com/flexdashboard/index.html. I have provided an example in this project folder (warning - it contains bad visualizations for demonstration purposes).  
+
+
+Here are the questions to be answered:  
+
+- Which bacteria was the hardest to kill?  Easiest to kill?  
+
+- Was one antibiotic the most effective overall?   
+
+- Did antibiotic effectiveness vary by gram staining?  
+
+
+```{r}
+antibio_wide <- read_csv("Burtin_Antibiotics.csv")
+antibio_wide %>% head()
+```
+
+Here is another reformulation of the same data that may or may not be useful, depending on the visualization you design.
+```{r}
+antibio_long <- read_csv("Burtin_Antibiotics_Alt.csv")
+antibio_long %>% head()
+```
+
+Remember, you can also create new variables if that is helpful, for example:  
+```{r}
+antibio_new <- antibio_wide %>% 
+  mutate(MIC_total = Penicilin + Streptom + Neomycin) 
+antibio_new %>% head()
+```
+
+
+## Visualizations
+
+Remember you can have AT MOST 3 visualizations to help you answer the three questions:  
+
+- Which bacteria was the hardest to kill?  Easiest to kill?  
+
+- Was one antibiotic the most effective overall?   
+
+- Did antibiotic effectiveness vary by gram staining?  
+
+
+```{r}
+#esquisse::esquisser(data) remember you can use this to get started but you will need to make some more adjustments
+#BE CAREFUL - the default geometry esquisse chooses are not always correct or best!
+```
+
+
+
+
+## Discussion  
+
+After you create your visualizations, provide answers to each of the three questions based on the visualizations.  
+
+Consider adding annotations to your visualizations and dashboards to help clarify the message of your visualizations.
+
+
+### Which bacteria was the hardest to kill?  Easiest to kill?  
+
+
+
+
+### Was one antibiotic the most effective overall?  
+
+
+
+
+### Did antibiotic effectiveness vary by gram staining?  
+
+
+

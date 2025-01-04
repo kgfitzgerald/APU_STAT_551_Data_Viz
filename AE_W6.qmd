@@ -1,0 +1,37 @@
+---
+title: "Aggregation - UC Berkely Admissions"
+author: "Group Members"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+library(tidyverse)
+```
+
+## Admissions at UC Berkeley 1973
+
+The University of California at Berkeley was charged with having discriminated against women in their graduate admissions process for the fall quarter of 1973. The table below shows the number of men accepted and denied and the number of women accepted and denied for two of the university’s graduate programs:
+
+```{r}
+admissions <- read_csv("./data/admissions.csv")
+```
+
+```{r}
+admissions %>% 
+  count(sex, decision)
+```
+
+```{r}
+admissions %>% 
+  count(program, sex, decision)
+```

@@ -1,0 +1,50 @@
+---
+title: "Burtin's Bacteria"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+antibio <- read_csv("Burtin_Antibiotics.csv")
+#if you use the transformed data you will need to include that code here
+```
+
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Add TITLE
+
+Add TEXT
+
+```{r}
+ggplot(antibio) +
+  geom_histogram(aes(x=Penicilin))
+#this is not a good option for a visualization FYI, it is just a demo!
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Streptom
+
+```{r}
+ggplot(antibio) +
+  geom_histogram(aes(x=Streptom))
+#this is not a good option for a visualization FYI, it is just a demo!
+
+```
+
+### Neomycin
+
+```{r}
+ggplot(antibio) +
+  geom_histogram(aes(x=Neomycin))
+#this is not a good option for a visualization FYI, it is just a demo!
+
+```
+

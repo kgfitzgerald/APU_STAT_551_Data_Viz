@@ -1,0 +1,359 @@
+---
+title: "Visualizing Economic and Health Indicators"
+format: 
+  html:
+    self-contained: true
+    toc: true
+    toc_float: true
+    number-section: false
+    highlight: tango
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE, comment = "",
+                      message = FALSE, warning = FALSE)
+library(tidyverse)
+library(gghighlight)
+library(ggrepel)
+library(extrafont) #adds new font options
+library(gridExtra) #provides some additional functionality for faceted plots
+#font_import() (only need to run this once per device)
+loadfonts(device = "win") #must use font_import() first (once per device)
+theme_set(theme_minimal()) #sets a universal theme for all the plots!
+```
+
+## Gapminder Data 
+
+In the gapminder folder, we have five data sets that provide information by country.  For each one, we will have to organize the data from a wide format, with year as the column names, to a long format.
+
+```{r}
+child <- read_csv("gapminder/child_mortality_0_5_year_olds_dying_per_1000_born.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "child_mortality")
+
+fertility <- read_csv("gapminder/children_per_woman_total_fertility.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "child_per")
+
+income <- read_csv("gapminder/income_per_person_gdppercapita_ppp_inflation_adjusted.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "gdpPerCap")
+
+lifeExp <- read_csv("gapminder/life_expectancy_years.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "lifeExp")
+
+population <- read_csv("gapminder/population_total.csv") %>% 
+  pivot_longer(cols = -country, names_to = "year", values_to = "population")
+```
+
+
+We can then join together the data by their common variables, which are year and country:
+
+```{r}
+#We are data cleaning because we have to combine several datasets into one. You are not expected to know how to do this on your own! Focus more on the ggplot code further down, after full_country data is created. 
+
+full_country <- population %>% 
+  left_join(child, by = c("country", "year")) %>% 
+  left_join(lifeExp, by = c("country", "year")) %>% 
+  left_join(fertility, by = c("country", "year")) %>% 
+  left_join(income, by = c("country", "year")) %>% 
+  mutate(year = as.numeric(year)) #year is being treated as a categorical variable, we want it to be numeric
+```
+
+Now we can create a graph for just the year 2007, with three different variables: GDP per Capita, Life Expectancy, and Population.
+
+TRY IT: Toggle on and off the scale_x_log10(). How does the graph change? How does the story change? Which is more useful for telling the story?
+
+```{r}
+#Note that we are SAVING The graph in an object called p. Then we print the graph at the end of the code chunk by haling a standalone line for p
+p <- full_country %>% 
+  filter(year == 2007) %>% # filters by year 2007
+  ggplot(mapping = aes(x = gdpPerCap, 
+                       y = lifeExp, 
+                       size = population,
+                       color = country)) +
+  geom_point() +  #aes set as global
+  #scale_x_log10(labels = scales::dollar_format(accuracy = 1)) + #scales x axis as a dollar format
+  #scale_size_continuous(labels = scales::comma) + #scale size values without scientific notation
+  scale_color_viridis_d(option = "plasma") + #set color options
+  labs(x = "GDP per capita", 
+       y = "Life expectancy in years",
+       title = "Health and wealth are strongly related",
+       subtitle = "142 countries; 2007 only", 
+       caption = "Source: The Gapminder Project",
+       color = "Continent", size = "Population") +  #labels for aes + titles/captions
+  guides(color = "none", 
+         size = "none") # remove unnecessary legends
+
+#a line with p alone prints the graph. 
+p
+```
+
+
+### Adding Labels
+
+Suppose I want to add in some labels.  Let's make a data set of just the labels I want to include:
+
+```{r}
+country_labels <- full_country %>% 
+  #Our graph is a snapshot of countries in 2007, but the dataset includes many more years. So we need to filter the data first to only 2007.
+  filter(year == 2007,
+         country %in% c("United States", "China", "India",
+                        "England", "South Africa", "Iraq"))
+
+#what does the country_labels dataset look like?
+country_labels
+```
+
+Now I can add labels onto my existing visualization - here are three ways, one using `ggplot2` and the other two using a package called `ggrepel`.
+
+```{r}
+#Since we saved our graph as the object p, we can now continue to customize the graph by just referencing p instead of having to rerun all the previous code. 
+
+#just add the text
+p +
+  geom_text(data = country_labels,
+            aes(x = gdpPerCap, 
+                y = lifeExp,
+                label = country),
+            size = 4)
+
+
+#use a function that will move the text slightly away from the data point
+p + 
+  geom_text_repel(data = country_labels,
+                  aes(x = gdpPerCap, 
+                      y = lifeExp,
+                      label = country),
+                  size = 4)
+
+#make the text a lable so that it is contained in a box, easier to see. Still repel away from points
+p + 
+  geom_label_repel(data = country_labels,
+                   aes(x = gdpPerCap, 
+                       y = lifeExp,
+                       label = country),
+                   size = 4)
+
+```
+
+
+
+## Line Plots for Time Series
+
+We can look at multiple countries over time for a specific variable, but it can be very messy.
+
+```{r}
+full_country %>% 
+  filter(between(year,1900,2020)) %>%  #one way to filter year between two values
+  ggplot(aes(x = year, y = gdpPerCap)) +
+  geom_line(aes(color = country,  #specify the variable we want to color
+                group = country),
+            linewidth = 1.5) + 
+  scale_color_viridis_d(option = "plasma") + #set color options
+  scale_y_log10(labels = scales::dollar_format(accuracy = 1)) +
+  labs(x = "Year", 
+       y = "GDP per capita",
+       title = "",
+       caption = "Source: The Gapminder Project") +
+  guides(color = "none")
+```
+
+
+
+### Highlighting Key Information
+
+Often we want to highlight some key information in our plots, especially when we make a "spaghetti plot". We can use the package `gghighlight`. Within `gghighlight()` we can specify a list of rows to highlight based on a specific variable value and then identify how we want to label and color them.
+
+#### GDP Per Capita
+
+```{r}
+full_country %>% 
+  filter(between(year,1900,2020)) %>%  #one way to filter year between two values
+  ggplot(aes(x = year, y = gdpPerCap)) +
+  geom_line(aes(color = country,  #specify the variable we want to color
+                group = country),
+            linewidth = 1.5) + 
+  scale_y_log10(labels = scales::dollar_format(accuracy = 1)) +
+  gghighlight(country %in% 
+                c("United States", "Iraq", "South Korea",
+                  "Vietnam", "Afghanistan", "Kuwait"),
+              label_key = country,
+              unhighlighted_params = list(size = 1)) +  #will only color the selected values for country
+  scale_color_viridis_d(option = "plasma") + #set color options
+  labs(x = "Year", 
+       y = "GDP per capita",
+       title = "",
+       caption = "Source: The Gapminder Project")
+```
+
+#### Life Expectancy
+
+
+```{r}
+full_country %>% 
+  filter(year <= 2020 & year >= 1850) %>%   #another way to filter year between two values
+  ggplot(aes(x = year, y = lifeExp, color = country)) +
+  geom_point() +
+  geom_line(aes(group = country),
+            size = 1.5) + 
+  gghighlight(country %in% 
+                c("United States", "Iraq", "South Korea",
+                  "Vietnam", "Afghanistan", "Kuwait", "Rwanda"),
+              label_key = country,
+              unhighlighted_params = list(size = 1)) +
+  scale_color_viridis_d(option = "viridis", end = 0.8) +
+  labs(x = "Year", 
+       y = "Life Expectancy in Years",
+       title = "",
+       caption = "Source: The Gapminder Project")
+```
+
+Remember our scatterplot from before? We can use `gghighlight` here as well.
+
+```{r}
+p + gghighlight(country %in% 
+                  c("United States", "Iraq", "South Korea",
+                    "Vietnam", "Afghanistan", "Kuwait"),
+                label_key = country,
+                label_params = list(size = 5), #override size as population for label
+                unhighlighted_params = list(color = "grey"))
+```
+
+
+
+## Connected Scatterplots
+
+For connected scatterplots we use a new geometry, call `segments` to connect each value together in order by time.
+
+
+```{r}
+year_label <- full_country %>% 
+  filter(country == "United States", 
+         year %in% c(1864, 1918, 1945, 1950, 1960, 
+                     1970, 1980, 1990, 2000, 2008, 2020)) #first we create a vector for labels
+
+
+full_country %>% 
+  filter(year <= 2020) %>% 
+  filter(country == "United States") %>% 
+  ggplot(aes(x = gdpPerCap, y = lifeExp, label = year)) +
+  geom_point() +
+  geom_text_repel(data = year_label) +  
+  geom_segment(aes(
+    xend = c(tail(gdpPerCap, n = -1), NA), 
+    yend = c(tail(lifeExp, n = -1), NA)),
+    arrow = arrow(length = unit(0.1,"cm"))) +
+  labs(x = "GDP Per Capita", 
+       y = "Life Expectancy in Years",
+       title = "",
+       caption = "Source: The Gapminder Project")
+
+
+```
+
+
+
+Let's create a connected scatterplot that demonstrates the history of a single country, with highlights and labels to help tell the story.
+
+This is the graph shown in the slides.
+
+```{r, fig.width = 12, fig.height = 10}
+year_label_rw <- full_country %>% 
+  filter(country == "Rwanda", 
+         year %in% c(1940, 1950, 1960, 1970, 
+                     1980, 1990, 2000, 2010, 2020)) #creates data for year labels
+
+genocide <- full_country %>% 
+  filter(country == "Rwanda", year == 1994)  #creates data for specific event
+
+famine <- full_country %>% 
+  filter(country == "Rwanda", year == 1944)  #creates data for specific event
+
+
+full_country %>% 
+  filter(year <= 2020 & year >= 1940) %>% 
+  filter(country == "Rwanda") %>% 
+  ggplot(aes(x = child_mortality, y = lifeExp, label = year)) +
+  geom_text_repel(data = year_label_rw, family = "Arial Narrow", 
+                  size = 6, color = "#555555") +  
+  geom_segment(aes(xend = c(tail(child_mortality, n = -1), NA), 
+                   yend = c(tail(lifeExp, n = -1), NA)),
+               arrow = arrow(length = unit(0.2,"cm")),
+               color = "#20603D", lwd = 1.25) +
+  scale_y_continuous(limits = c(0,70)) +
+  annotate(geom = "text", 
+           x = genocide$child_mortality,
+           y = genocide$lifeExp,
+           label = "Rwandan Genocide, 1994 \n 800,000 people \n murdered  in 100 days", 
+           family = "Arial Narrow", 
+           size = 6, color = "#00A1DE",
+           vjust = 1.2) +
+  annotate(geom = "text", 
+           x = famine$child_mortality,
+           y = famine$lifeExp,
+           label = "Famine, 1944", family = "Arial Narrow", 
+           size = 6, color = "#00A1DE",
+           vjust = 1.2) +
+  annotate(geom = "rect", 
+           ymin = 42, ymax = 55,
+           xmin = 145, xmax = 255,
+           fill = "#FAD201", alpha = 0.3) +
+  annotate(geom = "text", x = 200, y = 60,
+           label = "Period of upheval and civil war \n after Belgium concedes independence \n eventually leading to mass genocide",
+           family = "Arial Narrow", color = "#00A1DE", 
+           size = 6) + 
+  annotate(geom = "text", x = 75, y = 54,
+           label = "Gacaca Courts and \n Restorative Justice allow Rwandans \n to move forward together",
+           family = "Arial Narrow", color = "#00A1DE", 
+           size = 6) +
+  labs(x = "Child Mortality (Deaths per 1000, Age 0-5)",
+       y = "Life Expecency (years)",
+       title = "Violence followed by Restoration in Rwanda",
+       subtitle = "Child Mortality and Life Expectancy, 1940 - 2020",
+       caption = "Source: Gapminder Project") +
+  theme(text = element_text(size = 30, family = "Arial Narrow",
+                            color = "#20603D"),
+        plot.caption = element_text(color = "grey", size = 12))
+
+ggsave("rwanda_history.png", device = "png", width = 12, height = 10, units = "in")
+```
+
+
+We can add annotation and across facets as well:
+
+```{r, fig.height=12, fig.width = 8.5}
+meas_labs <- c("Population", "Child Mortality Rate", "Life Expectancy", "Children per Woman", "GDP per Capita")
+
+names(meas_labs) <- c("population", "child_mortality", "lifeExp", "child_per", "gdpPerCap")
+
+g_label <- data.frame(measure = c("population"), label = "Rwandan Genocide \n 800,000 people murdered in 100 days") #creates label for just one of our facets.
+
+
+full_country %>% 
+  filter(year <= 2020 & year >= 1940) %>% 
+  filter(country == "Rwanda") %>% 
+  pivot_longer(-c(country, year), 
+               names_to = "measure", values_to = "values") %>% 
+  ggplot(aes(x = year, y = values)) + 
+  geom_line(aes(color = measure), lwd = 1.5) +
+  scale_color_viridis_d(end = 0.9) + 
+  facet_grid(measure ~ ., scales = "free_y",
+             labeller = labeller(measure = meas_labs)) +
+  annotate(geom = "rect", 
+           xmin = 1993, xmax = 1995, 
+           ymin = -Inf, ymax = Inf, 
+           fill = "#FAD201", alpha = 0.3) +
+  scale_y_continuous(labels = scales::comma) +
+  guides(color = "none") +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        text = element_text(size = 20, family = "Arial Narrow")) +
+  geom_text(x = 1996, y = 5000000, aes(label = label), 
+            data = g_label,
+            family = "Arial Narrow", size = 4) +
+  labs(x = "Year", 
+       title = "25 years since the genocide, Rwanda recovers")
+
+ggsave("rwanda_all.png", device = "png", height = 12, width = 8, units = "in")
+
+```
+
+
