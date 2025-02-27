@@ -45,7 +45,7 @@ Our goal is to recreate the map from the following CDC [Dashboard](https://www.c
 Let's start with the map of the US:
 
 ```{r}
-lower_48 <- us_states %>% 
+lower_48 <- us_states |> 
   filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico")))
 
 ggplot() + 
@@ -57,22 +57,22 @@ ggplot() +
 We can extract data from the CDC on causes of death:
 
 ```{r}
-causes_raw <- read_csv("NCHS_-_Leading_Causes_of_Death__United_States.csv") %>% janitor::clean_names()
+causes_raw <- read_csv("./data/NCHS_-_Leading_Causes_of_Death__United_States.csv") |> janitor::clean_names()
 str(causes_raw)
 ```
 
 We can look at our data and make sure everything matches up. (This code is letting us check if each state appears one time.)
 
 ```{r}
-causes_raw %>% 
+causes_raw |> 
   distinct(state)
 ```
 
 Notice that the United States is included in there with the states. Now we need to join our lower 48 states data with our "geometry" information with the data on community transmission risk.
 
 ```{r}
-lower_48 %>% 
-  st_transform(5070) %>% 
+lower_48 |> 
+  st_transform(5070) |> 
   left_join(causes_raw, by = c("NAME" = "state")) -> cause_sf
 ```
 
@@ -86,7 +86,7 @@ head(cause_sf)
 We can also take a look at the causes:
 
 ```{r}
-causes_raw %>% 
+causes_raw |> 
   distinct(cause_name)
 ```
 
@@ -94,8 +94,8 @@ causes_raw %>%
 We need to calucate the average as a midpoint for our data. This value will be used as the midpoint of our color scale in the map.
 
 ```{r}
-cause_sf %>%
-  filter(cause_name == "All causes", year == 2017) %>% 
+cause_sf |>
+  filter(cause_name == "All causes", year == 2017) |> 
   summarise(avg = mean(age_adjusted_death_rate)) -> stats_cause
 
 stats_cause
@@ -105,9 +105,9 @@ stats_cause
 Now we can make our plot! We will just focus on "All causes" in the year 2017 (we will learn how to make interactive graphs later in the semester).
 
 ```{r}
-cause_sf %>%
+cause_sf |>
   #filter rows with all causes for 2017
-  _______(cause_name == "All causes", year == 2017) %>% 
+  _______(cause_name == "All causes", year == 2017) |> 
   ggplot() +  #initiate polot
   geom_sf(aes(_______ = geometry,  #set aes for the map
               _______ = age_adjusted_death_rate), #set the color
@@ -130,5 +130,5 @@ cause_sf %>%
 
 Yay! This is a fairly similar graph to the original map, but without the interactivity (which we can add later). Now let's move this to a dashboard.
 
-Download `CDC_Dashboard.qmd` file from GitHub. Copy and paste the code from the previous code chunk and paste it into the code chunk on line 99 of the `CDC_Dashboard.qmd` document. Render the document and submit your .html on Canvas.  
+Download `CDC_Dashboard.Rmd` file from GitHub. Copy and paste the code from the previous code chunk and paste it into the code chunk on line 99 of the `CDC_Dashboard.Rmd` document. Render the document and submit your .html on Canvas.  
 

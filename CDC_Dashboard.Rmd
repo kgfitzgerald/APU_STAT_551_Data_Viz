@@ -15,20 +15,20 @@ library(scales) #needed for axis label numbers
 # US Shape File
 us_states <- read_sf("shapefiles/cb_2018_us_state_20m/cb_2018_us_state_20m.shp")
 #Just includes the lower 48 
-lower_48 <- us_states %>% 
+lower_48 <- us_states |> 
   filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico")))
 
 # Causes of Death Data  
-causes_raw <- read_csv("data/NCHS_-_Leading_Causes_of_Death__United_States.csv") %>% janitor::clean_names()
+causes_raw <- read_csv("data/NCHS_-_Leading_Causes_of_Death__United_States.csv") |> janitor::clean_names()
 
 # Joins shapefile with data on causes
-lower_48 %>% 
-  st_transform(5070) %>% 
+lower_48 |> 
+  st_transform(5070) |> 
   left_join(causes_raw, by = c("NAME" = "state")) -> cause_sf
 
 # Calculates a value the mean used the graph as the mid point
-cause_sf %>%
-  filter(cause_name == "All causes", year == 2017) %>% 
+cause_sf |>
+  filter(cause_name == "All causes", year == 2017) |> 
   summarise(avg = mean(age_adjusted_death_rate)) -> stats_cause
 ```
 
@@ -42,12 +42,12 @@ Row {data-height=400}
 ### 
 
 ```{r}
-causes_raw %>% 
+causes_raw |> 
   filter(year == 2017, 
          state == "United States", 
-         cause_name != "All causes" ) %>%  #filters the rows to match the values for 2017 for the US and excludes all causes
-  arrange(desc(deaths)) %>% #arranges the data in descending order by deaths
-  head(10) %>%  # extracts the first 10 rows of the arrange causes
+         cause_name != "All causes" ) |>  #filters the rows to match the values for 2017 for the US and excludes all causes
+  arrange(desc(deaths)) |> #arranges the data in descending order by deaths
+  head(10) |>  # extracts the first 10 rows of the arrange causes
   ggplot() + #initiates the plot
   geom_col(aes(x = deaths, y = fct_reorder(cause_name, deaths),
                fill = cause_name)) + #plots deaths and causes, filled by causes and ordered by number of deaths
@@ -67,9 +67,9 @@ causes_raw %>%
 ### 
     
 ```{r}
-causes_raw %>% 
+causes_raw |> 
   filter(state == "United States", 
-         cause_name == "All causes" ) %>%  #just the US and all causes rows, keep all years
+         cause_name == "All causes" ) |>  #just the US and all causes rows, keep all years
   ggplot(aes(x = year, y = age_adjusted_death_rate)) + #initiate plot, establish x/y here since they are universal aesthetics for all geometries used
   geom_point(color = "#2d4879", size = 3) + #sets point size/color since aes are already established
   geom_line(color = "#2d4879", size = 1.2) + #sets line size/color since aes are already established
@@ -96,21 +96,7 @@ Row {data-height=600}
 ### 
 
 ```{r}
-cause_sf %>%
-  #filter rows with all causes for 2017
-  filter(cause_name == "All causes", year == 2017) %>% 
-  ggplot() +  #initiate polot
-  geom_sf(aes(geometry = geometry,  #set aes for the map
-              fill = age_adjusted_death_rate), #set the color
-          color = "black", linewidth = 0.15) +  
-  labs(title = "Age-adjusted Death Rates for All causes, by State: 2017 ",
-       fill = "Legend for Age-Adjusted Death Rate Per 100,000 U.S. Standard Population")  +
-  scale_fill_gradient2(low = "#2d4879", high = "#911d1e", mid = "lightgrey",
-                       midpoint = stats_cause$avg) + #set the right coloring aesthetic to the desired scale
-  theme_void() + #theme that removes everything
-  theme(plot.title = element_text(hjust = 0.5), #adjusts title location
-        legend.position = "bottom") + #moves legend to the bottom
-  guides(fill = guide_colorbar(title.position = "top")) #puts the legend title on top of the colorbar
+
 ```
    
 ### U.S. Death Rate for All Causes:  
@@ -119,11 +105,10 @@ cause_sf %>%
 # this adds the little value box number on the dashboard
 # notice you can use fig.width or fig.height to set the size of the graph in output in the document (in inches)
 
-us_value <-  causes_raw %>%
-  filter(cause_name == "All causes", year == 2017, state == "United States") %>% 
+us_value <-  causes_raw |>
+  filter(cause_name == "All causes", year == 2017, state == "United States") |> 
   select(age_adjusted_death_rate)
 valueBox(us_value, 
          caption = "U.S. Death Rate for All Causes: Age-adjusted death rate per 100,000 U.S. standard population", 
          color = "primary")
 ```
-
